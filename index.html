@@ -182,6 +182,26 @@ input,textarea{font-family:'DM Sans',sans-serif;}
         <div id="staff-rows"></div>
       </div>
 
+      <!-- BARTENDER DAILY SUMMARY — linked totals -->
+      <div class="card">
+        <div class="chdr bh"><span>📊 Bartender Daily Summary</span><span class="badge" id="b-summary">$0.00</span></div>
+        <div class="colhdr" style="display:grid;grid-template-columns:1fr 40px 70px 70px 70px;gap:4px;padding:7px 12px">
+          <span>Name</span>
+          <span style="text-align:center">Hrs</span>
+          <span style="text-align:center">Base</span>
+          <span style="text-align:center">Tips</span>
+          <span style="text-align:center">Total</span>
+        </div>
+        <div id="summary-rows"></div>
+        <div style="display:grid;grid-template-columns:1fr 40px 70px 70px 70px;gap:4px;padding:9px 12px;background:var(--s3);border-top:2px solid var(--bar-a)">
+          <div style="font-weight:700;font-size:12px;color:var(--bar-a)">TOTALS</div>
+          <input class="inp" id="sum-hrs"  readonly value="0h"    style="text-align:center;font-size:11px;pointer-events:none;padding:6px 2px">
+          <input class="inp" id="sum-base" readonly value="$0.00" style="text-align:center;font-size:11px;pointer-events:none;padding:6px 2px">
+          <input class="inp" id="sum-tips" readonly value="$0.00" style="text-align:center;font-size:11px;pointer-events:none;padding:6px 2px;color:var(--bar-a)">
+          <input class="inp" id="sum-tot"  readonly value="$0.00" style="text-align:center;font-size:11px;pointer-events:none;padding:6px 2px;color:var(--gold);font-weight:700">
+        </div>
+      </div>
+
       <!-- REGISTER -->
       <div class="card">
         <div class="chdr bh"><span>🏧 Cash Register</span></div>
@@ -201,6 +221,21 @@ input,textarea{font-family:'DM Sans',sans-serif;}
       <div class="card">
         <div class="chdr bh"><span>📈 Sales Report</span><span class="badge" id="b-bar">$0.00</span></div>
         <div id="sales-rows"></div>
+        <!-- Tax calculation -->
+        <div class="row g2" style="background:var(--s3)">
+          <div>
+            <div class="rl" style="font-weight:700;color:#ef9a9a">🧾 Tax (11.5%)</div>
+            <div style="font-size:10px;color:var(--dim);margin-top:2px">Credit Total + ATH Total × 11.5%</div>
+          </div>
+          <input class="inp" id="tax-amt" readonly value="$0.00" style="color:#ef9a9a;font-weight:700;pointer-events:none">
+        </div>
+        <div class="row g2" style="background:var(--s3)">
+          <div>
+            <div class="rl" style="font-weight:700;color:#ef9a9a">After Tax</div>
+            <div style="font-size:10px;color:var(--dim);margin-top:2px">Credit + ATH minus tax</div>
+          </div>
+          <input class="inp" id="after-tax" readonly value="$0.00" style="color:#ef9a9a;font-weight:700;pointer-events:none">
+        </div>
         <div class="row g2" style="background:var(--s2)">
           <div>
             <div class="rl" style="font-weight:700">Bar Total</div>
@@ -213,6 +248,10 @@ input,textarea{font-family:'DM Sans',sans-serif;}
       <!-- CARD TIPS -->
       <div class="card">
         <div class="chdr bh"><span>💳 Card Tips</span><span class="badge" id="b-tips">$0.00</span></div>
+        <div style="padding:8px 14px;background:var(--s2);border-bottom:1px solid #fff1;font-size:12px;color:var(--dim)">
+          Tips auto-split by bartender hours. Enter clock-in times first.
+        </div>
+
         <div style="display:grid;grid-template-columns:1fr 1fr;">
           <div>
             <div class="colhdr">Card Tips</div>
@@ -220,36 +259,19 @@ input,textarea{font-family:'DM Sans',sans-serif;}
             <div class="row g2"><div class="rl" style="font-weight:700">Total</div><input class="inp" id="ct-tot" readonly value="$0.00"></div>
           </div>
           <div style="border-left:1px solid #fff1">
-            <div class="colhdr">ATH Movil Tips</div>
+            <div class="colhdr">ATH Movil Transactions</div>
             <div id="atips-rows"></div>
             <div class="row g2"><div class="rl" style="font-weight:700">Total</div><input class="inp" id="at-tot" readonly value="$0.00"></div>
           </div>
         </div>
-      </div>
 
-      <!-- TIP POOL CALCULATOR -->
-      <div class="card">
-        <div class="chdr bh"><span>🔀 Tip Pool Calculator</span><span class="badge" id="b-pool">$0.00</span></div>
-        <div style="padding:10px 14px;font-size:12px;color:var(--dim);border-bottom:1px solid #fff1;line-height:1.7">
-          Tips are split by hours worked during <b style="color:var(--tx)">overlap windows only</b>. Solo time = bartender keeps 100%.
-        </div>
-
-        <!-- Time windows -->
-        <div style="padding:12px 14px">
-          <div class="lbl" style="margin-bottom:8px">⏱ Shift Windows — pulled from staff clock-in times</div>
-          <div id="pool-staff-times" style="margin-bottom:12px"></div>
-
-          <div class="lbl" style="margin-bottom:8px">💵 Tip Pools — enter tips collected in each window</div>
-          <div id="pool-windows"></div>
-          <button class="btn" style="background:var(--bar);color:var(--bar-a);padding:9px 18px;font-size:13px;margin-top:10px;border:1px solid var(--bar-a)" onclick="addPoolWindow()">+ Add Window</button>
-        </div>
-
-        <!-- Results -->
-        <div style="border-top:1px solid #fff1">
+        <!-- Per-bartender tip split from card tips -->
+        <div style="border-top:2px solid var(--bar-a)">
+          <div style="padding:8px 14px;font-size:11px;color:var(--bar-a);text-transform:uppercase;letter-spacing:1px;font-weight:700">Card Tips Split by Bartender</div>
           <div class="colhdr" style="display:grid;grid-template-columns:1fr 90px 90px 110px;gap:8px;padding:7px 14px">
-            <span>Bartender</span><span style="text-align:center">Solo Tips</span><span style="text-align:center">Shared Tips</span><span style="text-align:center">Total Tips</span>
+            <span>Bartender</span><span style="text-align:center">Solo</span><span style="text-align:center">Shared</span><span style="text-align:center">Total</span>
           </div>
-          <div id="pool-results"></div>
+          <div id="tips-split-results"></div>
         </div>
       </div>
 
@@ -624,6 +646,7 @@ function cStaffTot(){
     t+=earned+tips+fv(`s-inc-${i}`);
   });
   $('b-staff').textContent=fm(t);
+  updateSummary && updateSummary();
 }
 
 // ── BUILD SALES ─────────────────────────────────────────────
@@ -648,8 +671,14 @@ function buildSales(){
 function cSales(){
   let t=0;
   SALES.forEach((nm,i)=>{ if(nm!=='Spa Total') t+=fv(`sl-${i}`); });
-  $('b-bar').textContent=fm(t);
-  // Bar Total is manual — don't overwrite it
+  $('b-bar').textContent=fm(fv('bar-total'));
+
+  // Tax: Credit Total (idx 0) + ATH Total (idx 1) × 11.5%
+  const creditATH = fv('sl-0') + fv('sl-1');
+  const tax = Math.round(creditATH * 0.115 * 100) / 100;
+  const afterTax = Math.round((creditATH - tax) * 100) / 100;
+  if($('tax-amt'))   $('tax-amt').value   = fm(tax);
+  if($('after-tax')) $('after-tax').value = fm(afterTax);
 }
 
 // ── REGISTER ────────────────────────────────────────────────
@@ -660,17 +689,162 @@ function calcReg(){
 
 // ── CARD TIPS ────────────────────────────────────────────────
 function buildCardTips(){
-  const cc=$('ctips-rows'), ac=$('atips-rows'); cc.innerHTML=''; ac.innerHTML='';
+  const cc=$('ctips-rows'), ac=$('atips-rows');
+  if(!cc||!ac) return;
+  cc.innerHTML=''; ac.innerHTML='';
   for(let i=0;i<N_CARD_TIPS;i++){
     const bg=i%2?'var(--s2)':'var(--s1)';
     cc.innerHTML+=`<div class="row g2" style="background:${bg}"><div class="rl" style="color:var(--dim);font-size:13px">#${i+1}</div><input type="number" class="inp" id="ct-${i}" placeholder="0.00" oninput="cTips()"></div>`;
     ac.innerHTML+=`<div class="row g2" style="background:${bg}"><div class="rl" style="color:var(--dim);font-size:13px">#${i+1}</div><input type="number" class="inp" id="at-${i}" placeholder="0.00" oninput="cTips()"></div>`;
   }
 }
+
+function updateSlotDropdowns(){ /* no-op — slot dropdowns removed */ }
+
 function cTips(){
-  let ct=0,at=0;
-  for(let i=0;i<N_CARD_TIPS;i++){ct+=fv(`ct-${i}`);at+=fv(`at-${i}`);}
-  $('ct-tot').value=fm(ct); $('at-tot').value=fm(at); $('b-tips').textContent=fm(ct+at);
+  let ct=0, at=0;
+  for(let i=0;i<N_CARD_TIPS;i++){ ct+=fv(`ct-${i}`); at+=fv(`at-${i}`); }
+  if($('ct-tot')) $('ct-tot').value=fm(ct);
+  if($('at-tot')) $('at-tot').value=fm(at);
+  if($('b-tips')) $('b-tips').textContent=fm(ct+at);
+
+  const totalTips = ct + at;
+
+  // ── Auto-split tips by hours worked per window ──────────────
+  // Each bartender's share = sum over all windows of:
+  //   (their hours in that window / total hours in that window) × tips in that window
+  // Tips per window = total tips × (window duration / total shift duration)
+
+  const results={};
+  STAFF.forEach(s=>{ results[s.n]={solo:0,shared:0}; });
+
+  if(!poolWindows.length || !totalTips){
+    // No windows — split equally among all clocked-in bartenders
+    const clocked=STAFF.filter((_,i)=>$(`s-st-${i}`)?.value&&$(`s-en-${i}`)?.value);
+    if(clocked.length){
+      const share=totalTips/clocked.length;
+      clocked.forEach(s=>{ results[s.n].shared+=share; });
+    }
+  } else {
+    // Calculate total shift duration for proportional tip distribution
+    const totalMins = poolWindows.reduce((a,w)=>{
+      const dur=(w.endMin!==null&&w.startMin!==null)?(w.endMin-w.startMin):0;
+      return a+dur;
+    },0);
+
+    poolWindows.forEach(w=>{
+      if(!w.bartenders||!w.bartenders.length) return;
+      const dur=(w.endMin!==null&&w.startMin!==null)?(w.endMin-w.startMin):0;
+      // Tips allocated to this window proportional to its duration
+      const windowTips = totalMins>0 ? totalTips*(dur/totalMins) : totalTips/poolWindows.length;
+
+      if(w.bartenders.length===1){
+        if(results[w.bartenders[0]]) results[w.bartenders[0]].solo += windowTips;
+      } else {
+        // Split equally among bartenders in this window
+        const share = windowTips/w.bartenders.length;
+        w.bartenders.forEach(nm=>{ if(results[nm]) results[nm].shared += share; });
+      }
+    });
+  }
+
+  // Round all values
+  STAFF.forEach(s=>{
+    results[s.n].solo   = Math.round(results[s.n].solo*100)/100;
+    results[s.n].shared = Math.round(results[s.n].shared*100)/100;
+  });
+
+  const res=$('tips-split-results'); if(!res){ updateSummary&&updateSummary(); return; }
+  let html='';
+  STAFF.forEach((s,i)=>{
+    const r=results[s.n];
+    const tot=r.solo+r.shared;
+    if(!tot) return;
+    const bg=i%2?'var(--s2)':'var(--s1)';
+    html+=`<div style="display:grid;grid-template-columns:1fr 90px 90px 110px;gap:8px;padding:9px 14px;background:${bg};border-bottom:1px solid #fff1;align-items:center">
+      <div style="font-size:13px;font-weight:500">${s.n}</div>
+      <input class="inp" readonly value="${fm(r.solo)}" style="text-align:center;font-size:13px;pointer-events:none">
+      <input class="inp" readonly value="${fm(r.shared)}" style="text-align:center;font-size:13px;pointer-events:none">
+      <input class="inp" readonly value="${fm(tot)}" style="text-align:center;font-size:13px;color:var(--gold);font-weight:700;pointer-events:none">
+    </div>`;
+  });
+  res.innerHTML = html || '<div style="padding:12px 14px;font-size:12px;color:var(--dim)">Enter clock-in times and card tips above to see split.</div>';
+  updateSummary&&updateSummary();
+}
+
+function updateSummary(){
+  const tipPool={};
+  STAFF.forEach(s=>{ tipPool[s.n]=0; });
+
+  // Use same proportional split logic as cTips
+  let ct=0, at=0;
+  for(let i=0;i<N_CARD_TIPS;i++){ ct+=fv(`ct-${i}`); at+=fv(`at-${i}`); }
+  const totalTips=ct+at;
+
+  if(totalTips>0){
+    if(!poolWindows.length){
+      const clocked=STAFF.filter((_,i)=>$(`s-st-${i}`)?.value&&$(`s-en-${i}`)?.value);
+      if(clocked.length){
+        const share=totalTips/clocked.length;
+        clocked.forEach(s=>{ tipPool[s.n]+=share; });
+      }
+    } else {
+      const totalMins=poolWindows.reduce((a,w)=>{
+        const dur=(w.endMin!==null&&w.startMin!==null)?(w.endMin-w.startMin):0;
+        return a+dur;
+      },0);
+      poolWindows.forEach(w=>{
+        if(!w.bartenders||!w.bartenders.length) return;
+        const dur=(w.endMin!==null&&w.startMin!==null)?(w.endMin-w.startMin):0;
+        const windowTips=totalMins>0?totalTips*(dur/totalMins):totalTips/poolWindows.length;
+        if(w.bartenders.length===1){
+          if(tipPool[w.bartenders[0]]!==undefined) tipPool[w.bartenders[0]]+=windowTips;
+        } else {
+          const share=windowTips/w.bartenders.length;
+          w.bartenders.forEach(nm=>{ if(tipPool[nm]!==undefined) tipPool[nm]+=share; });
+        }
+      });
+    }
+  }
+
+  // Round
+  STAFF.forEach(s=>{ tipPool[s.n]=Math.round(tipPool[s.n]*100)/100; });
+
+  let tHrs=0, tBase=0, tTips=0, tInc=0, tTot=0;
+  let html='';
+
+  STAFF.forEach((s,i)=>{
+    const st=$(`s-st-${i}`)?.value, en=$(`s-en-${i}`)?.value;
+    let hrs=0;
+    if(st&&en){
+      const[sh,sm]=st.split(':').map(Number),[eh,em]=en.split(':').map(Number);
+      hrs=((eh*60+em)-(sh*60+sm))/60; if(hrs<0)hrs+=24;
+      hrs=Math.round(hrs*100)/100;
+    }
+    const rate=fv(`s-pay-${i}`);
+    const base=Math.round(hrs*rate*100)/100;
+    const poolTips=Math.round((tipPool[s.n]||0)*100)/100;
+    const inc=fv(`s-inc-${i}`);
+    const tot=base+poolTips+inc;
+
+    tHrs+=hrs; tBase+=base; tTips+=poolTips; tInc+=inc; tTot+=tot;
+    const bg=i%2?'var(--s2)':'var(--s1)';
+    html+=`<div style="display:grid;grid-template-columns:1fr 40px 70px 70px 70px;gap:4px;padding:8px 12px;background:${bg};border-bottom:1px solid #fff1;align-items:center">
+      <div style="font-size:13px;font-weight:600">${s.n}</div>
+      <div style="text-align:center;font-size:11px;color:var(--dim)">${hrs>0?hrs+'h':'—'}</div>
+      <input class="inp" readonly value="${fm(base)}" style="text-align:center;font-size:11px;pointer-events:none;padding:5px 2px">
+      <input class="inp" readonly value="${fm(poolTips)}" style="text-align:center;font-size:11px;pointer-events:none;padding:5px 2px;color:var(--bar-a)">
+      <input class="inp" readonly value="${fm(tot)}" style="text-align:center;font-size:11px;pointer-events:none;padding:5px 2px;color:var(--gold);font-weight:700">
+    </div>`;
+  });
+
+  const sr=$('summary-rows');
+  if(sr) sr.innerHTML = html;
+  if($('sum-hrs'))  $('sum-hrs').value  = tHrs>0 ? tHrs.toFixed(1)+'h' : '0h';
+  if($('sum-base')) $('sum-base').value = fm(tBase);
+  if($('sum-tips')) $('sum-tips').value = fm(tTips);
+  if($('sum-tot'))  $('sum-tot').value  = fm(tTot);
+  if($('b-summary')) $('b-summary').textContent = fm(tTot);
 }
 
 // ── EXPENSES ─────────────────────────────────────────────────
@@ -803,7 +977,7 @@ function initPoolWindows(){
     return st!==null&&en!==null ? {name:s.n,st,en:en<st?en+1440:en} : null;
   }).filter(Boolean);
 
-  if(!active.length){ renderPoolWindows(); calcPool(); return; }
+  if(!active.length){ renderPoolWindows(); calcPool(); updateSlotDropdowns && updateSlotDropdowns(); cTips && cTips(); return; }
 
   // Collect all unique time breakpoints
   const points=[...new Set(active.flatMap(s=>[s.st,s.en]))].sort((a,b)=>a-b);
@@ -819,70 +993,87 @@ function initPoolWindows(){
       });
     }
   }
-  renderPoolWindows(); calcPool();
+  renderPoolWindows(); calcPool(); updateSlotDropdowns && updateSlotDropdowns(); cTips && cTips();
 }
 
 function addPoolWindow(){
   poolWindows.push({startMin:null,endMin:null,label:'Custom Window',bartenders:[],tips:0});
-  renderPoolWindows(); calcPool();
+  renderPoolWindows(); calcPool(); updateSlotDropdowns && updateSlotDropdowns(); cTips && cTips();
 }
 
 function renderPoolWindows(){
-  // Staff times summary
-  const st=$('pool-staff-times'); st.innerHTML='';
-  STAFF.forEach((s,i)=>{
-    const start=$(`s-st-${i}`)?.value, end=$(`s-en-${i}`)?.value;
-    if(start||end){
-      st.innerHTML+=`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:1px solid #fff1">
-        <span style="font-weight:500">${s.n}</span>
-        <span style="color:var(--bar-a)">${start||'?'} → ${end||'?'}</span>
-      </div>`;
-    }
-  });
-  if(!st.innerHTML) st.innerHTML=`<div style="color:var(--dim);font-size:12px">Enter staff start/finish times above first.</div>`;
-
-  // Windows
-  const pw=$('pool-windows'); pw.innerHTML='';
+  const pw=$('pool-columns'); 
+  if(!pw){ calcPool(); updateSlotDropdowns && updateSlotDropdowns(); cTips && cTips(); return; }
+  pw.innerHTML='';
   if(!poolWindows.length){
-    pw.innerHTML=`<div style="color:var(--dim);font-size:12px;padding:4px 0">No windows yet. Enter staff times or click + Add Window.</div>`;
+    pw.innerHTML=`<div style="color:var(--dim);font-size:12px;padding:4px 0">Enter staff start/finish times above — time slots will appear automatically.</div>`;
     return;
   }
 
   poolWindows.forEach((w,wi)=>{
-    const bg=wi%2?'var(--s2)':'var(--s1)';
-    const bartList = w.bartenders.length
-      ? w.bartenders.join(', ')
-      : '<span style="color:var(--dim)">No staff detected</span>';
+    const isSolo = w.bartenders.length===1;
+    const isShared = w.bartenders.length>1;
+    const headerColor = isSolo?'var(--bar-l)':isShared?'#7b3fa0':'var(--s3)';
+    const label = isSolo?'👤 Solo':'👥 Shared ('+w.bartenders.length+')';
 
     pw.innerHTML+=`
-    <div style="background:${bg};border-radius:var(--rs);margin-bottom:8px;padding:10px 12px;border:1px solid #fff1">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <div style="border:1.5px solid #ffffff15;border-radius:var(--rs);margin-bottom:10px;overflow:hidden">
+      <!-- Slot header -->
+      <div style="background:${headerColor};padding:10px 12px;display:flex;justify-content:space-between;align-items:center">
         <div>
-          <div style="font-size:13px;font-weight:600;color:var(--bar-a)">${w.label}</div>
-          <div style="font-size:11px;color:var(--dim);margin-top:2px">👤 ${bartList}</div>
+          <div style="font-size:13px;font-weight:700;color:#fff">${w.label}</div>
+          <div style="font-size:11px;color:#ffffff99;margin-top:2px">${label}</div>
         </div>
-        <button onclick="removeWindow(${wi})" style="background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;padding:0 4px">×</button>
+        <button onclick="removeWindow(${wi})" style="background:none;border:none;color:#ffffff99;font-size:20px;cursor:pointer;padding:0 4px;line-height:1">×</button>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 130px;gap:8px;align-items:center">
-        <div style="font-size:12px;color:var(--dim)">Tips collected this window ($)</div>
-        <input type="number" class="inp" id="pw-tips-${wi}" value="${w.tips||''}" placeholder="0.00" oninput="updateWindowTips(${wi})">
+
+      <!-- Active bartenders in this slot -->
+      <div style="padding:8px 12px;background:var(--s2);border-bottom:1px solid #fff1">
+        <div style="font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Active Bartenders</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${w.bartenders.length
+            ? w.bartenders.map(n=>`<span style="background:var(--bar);color:var(--bar-a);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">${n}</span>`).join('')
+            : `<span style="color:var(--dim);font-size:12px">No active bartenders</span>`
+          }
+        </div>
       </div>
+
+      <!-- Tips input -->
+      <div style="padding:10px 12px;display:grid;grid-template-columns:1fr 130px;gap:8px;align-items:center;background:var(--s1)">
+        <div>
+          <div style="font-size:13px;color:var(--tx);font-weight:500">Tips collected</div>
+          <div style="font-size:11px;color:var(--dim);margin-top:2px">${isSolo?'Goes entirely to '+w.bartenders[0]:isShared?'Split equally among '+w.bartenders.length+' bartenders':'—'}</div>
+        </div>
+        <input type="number" class="inp" id="pw-tips-${wi}" value="${w.tips||''}" placeholder="0.00" oninput="updateWindowTips(${wi})" style="font-size:16px;font-weight:700">
+      </div>
+
+      <!-- Per-bartender split preview -->
+      ${w.tips>0 && w.bartenders.length ? `
+      <div style="padding:8px 12px;background:var(--s3);border-top:1px solid #fff1">
+        ${w.bartenders.map(n=>{
+          const share = isSolo ? w.tips : w.tips/w.bartenders.length;
+          return `<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">
+            <span style="color:var(--dim)">${n}</span>
+            <span style="color:var(--gold);font-weight:700">${fm(share)}</span>
+          </div>`;
+        }).join('')}
+      </div>` : ''}
     </div>`;
   });
 }
 
 function removeWindow(wi){
   poolWindows.splice(wi,1);
-  renderPoolWindows(); calcPool();
+  renderPoolWindows(); calcPool(); updateSlotDropdowns && updateSlotDropdowns(); cTips && cTips();
 }
 
 function updateWindowTips(wi){
   poolWindows[wi].tips = parseFloat($(`pw-tips-${wi}`)?.value)||0;
-  calcPool();
+  renderPoolWindows(); calcPool(); updateSlotDropdowns && updateSlotDropdowns(); cTips && cTips();
 }
 
 function calcPool(){
-  const results={}; // name -> {solo, shared}
+  const results={};
   STAFF.forEach(s=>{ results[s.n]={solo:0,shared:0}; });
 
   let grandTotal=0;
@@ -890,23 +1081,20 @@ function calcPool(){
     const tips=w.tips||0;
     grandTotal+=tips;
     if(!w.bartenders||!w.bartenders.length) return;
-
     if(w.bartenders.length===1){
-      // Solo window — bartender keeps all
       const nm=w.bartenders[0];
       if(results[nm]) results[nm].solo+=tips;
     } else {
-      // Shared window — split proportionally by hours in that window
-      const winMins=(w.endMin!==null&&w.startMin!==null)?(w.endMin-w.startMin):60;
-      // Each worker in window gets equal share of the overlap (same window = same hours in it)
       const share=tips/w.bartenders.length;
       w.bartenders.forEach(nm=>{ if(results[nm]) results[nm].shared+=share; });
     }
   });
 
-  $('b-pool').textContent=fm(grandTotal);
+  if($('b-pool')) $('b-pool').textContent=fm(grandTotal);
 
-  const res=$('pool-results'); res.innerHTML='';
+  const res=$('pool-results'); 
+  if(!res){ updateSummary && updateSummary(); return; }
+  res.innerHTML='';
   let anyResult=false;
   STAFF.forEach((s,i)=>{
     const r=results[s.n];
@@ -921,7 +1109,8 @@ function calcPool(){
       <input class="inp" readonly value="${fm(tot)}" style="text-align:center;font-size:13px;color:var(--gold);font-weight:700;pointer-events:none">
     </div>`;
   });
-  if(!anyResult) res.innerHTML=`<div style="padding:14px;text-align:center;color:var(--dim);font-size:13px">Enter tips per window above to see split.</div>`;
+  if(!anyResult) res.innerHTML=`<div style="padding:14px;text-align:center;color:var(--dim);font-size:13px">Enter clock-in times above to generate time slots.</div>`;
+  updateSummary && updateSummary();
 }
 
 // ── SAVE / LOAD ──────────────────────────────────────────────
@@ -1002,9 +1191,8 @@ function loadDay(){
   if($('bar-total')&&d.bar?.barTotal) $('bar-total').value=d.bar.barTotal;
   $('b-bar').textContent=fm(fv('bar-total'));
   cSales();
-  // tips
-  (d.bar?.ctips||[]).forEach((v,i)=>{if($(`ct-${i}`))$(`ct-${i}`).value=v||'';});
-  (d.bar?.atips||[]).forEach((v,i)=>{if($(`at-${i}`))$(`at-${i}`).value=v||'';});
+  (d.bar?.ctips||[]).forEach((v,i)=>{if($(`ct-${i}`))$(`ct-${i}`).value=(typeof v==='object'?v.amt:v)||'';});
+  (d.bar?.atips||[]).forEach((v,i)=>{if($(`at-${i}`))$(`at-${i}`).value=(typeof v==='object'?v.amt:v)||'';});
   cTips();
   // expenses
   (d.bar?.exps||[]).forEach((e,i)=>{
