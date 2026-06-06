@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anam POS — Daily Report</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a3a5c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Anam POS">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bar:#1a3a5c; --bar-l:#2e6da4; --bar-a:#4fc3f7;
+  --spa:#3b1a5c; --spa-l:#7b3fa0; --spa-a:#ce93d8;
+  --bg:#0d0d0f; --s1:#16181d; --s2:#1e2128; --s3:#252830;
+  --tx:#f0f2f5; --dim:#8a8f9e; --gold:#ffd54f; --green:#4caf50; --red:#ef5350;
+  --r:14px; --rs:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;}
+/* SPLASH */
+#splash{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:20px;}
+#splash h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,12vw,100px);letter-spacing:4px;background:linear-gradient(135deg,var(--bar-a),var(--spa-a));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+#splash .sub{color:var(--dim);font-size:13px;letter-spacing:3px;text-transform:uppercase;margin-top:-14px;}
+#splash button{padding:16px 52px;border:none;border-radius:var(--r);background:linear-gradient(135deg,var(--bar-l),var(--spa-l));color:#fff;font-size:18px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:1px;margin-top:8px;}
+/* APP */
+#app{display:none;min-height:100vh;padding-bottom:40px;}
+/* TOPBAR */
+#topbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--s1);border-bottom:1px solid #fff1;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;background:linear-gradient(135deg,var(--bar-a),var(--spa-a));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.clock{font-size:12px;color:var(--dim);text-align:right;}
+.clock strong{display:block;color:var(--tx);font-size:14px;}
+/* TABS */
+#tabs{display:none;}
+/* NAV BAR */
+#navrow{display:none;width:100%;background:var(--s1);border-bottom:2px solid #ffffff15;}
+#navrow table{width:100%;border-collapse:collapse;}
+#navrow td{width:25%;text-align:center;padding:0;}
+.nbtn{display:block;width:100%;padding:12px 4px 10px;border:none;background:transparent;color:var(--dim);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;border-bottom:3px solid transparent;}
+.nbtn.on{color:#fff;border-bottom-color:#fff;}
+.nbtn.nb-bar.on{color:var(--bar-a);border-bottom-color:var(--bar-a);}
+.nbtn.nb-spa.on{color:var(--spa-a);border-bottom-color:var(--spa-a);}
+.nbtn.nb-hist.on{color:var(--tx);border-bottom-color:var(--tx);}
+.nbtn.nb-week.on{color:#81c784;border-bottom-color:#81c784;}
+.nbtn .ni{display:block;font-size:20px;margin-bottom:2px;}
+#wrap{padding:14px;max-width:860px;margin:0 auto;}
+.panel{display:none;}.panel.on{display:block;}
+/* CARD */
+.card{background:var(--s1);border-radius:var(--r);margin-bottom:14px;overflow:hidden;border:1px solid #fff1;}
+.chdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;}
+.chdr.bh{background:var(--bar);color:var(--bar-a);}
+.chdr.sh{background:var(--spa);color:var(--spa-a);}
+.badge{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold);letter-spacing:1px;}
+/* ROW */
+.row{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid #fff1;}
+.row:last-child{border-bottom:none;}
+.rl{font-size:14px;font-weight:500;flex:1;}
+.rs{font-size:11px;color:var(--dim);margin-top:2px;}
+/* INPUT */
+input,textarea{font-family:'DM Sans',sans-serif;}
+.inp{background:var(--s2);border:1.5px solid #fff2;border-radius:var(--rs);color:var(--tx);font-size:15px;font-weight:500;padding:9px 11px;width:100%;text-align:right;outline:none;transition:border-color .2s;-webkit-appearance:none;}
+.inp:focus{border-color:var(--bar-a);}
+.spa .inp:focus{border-color:var(--spa-a);}
+.inp[readonly]{background:var(--s3);color:var(--gold);font-weight:700;cursor:default;}
+.inp.tl{text-align:left;}
+.inp.tc{text-align:center;}
+/* ACCORDION */
+.acc-hdr{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;border-bottom:1px solid #fff1;transition:background .15s;}
+.acc-hdr:hover{background:var(--s3);}
+.arr{font-size:16px;transition:transform .2s;color:var(--bar-a);min-width:20px;text-align:center;}
+.arr.open{transform:rotate(90deg);}
+.arr.spa-arr{color:var(--spa-a);}
+.acc-body{display:none;padding:12px 14px;border-bottom:1px solid #fff1;}
+.acc-body.open{display:block;}
+.acc-body:last-child{border-bottom:none;}
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 150px;gap:8px;align-items:center;}
+.g3{display:grid;grid-template-columns:1fr 120px 120px;gap:8px;align-items:center;}
+.g4{display:grid;grid-template-columns:1fr 100px 100px 100px;gap:8px;align-items:center;}
+.fg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;}
+.tg{display:grid;grid-template-columns:36px 1fr 115px;gap:7px;align-items:center;padding:3px 0;}
+.cg{display:grid;grid-template-columns:36px 1fr 110px 110px;gap:7px;align-items:center;padding:3px 0;}
+/* SUMMARY */
+.sbox{background:var(--s2);border-radius:var(--rs);padding:10px;text-align:center;}
+.sbox .sl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;}
+.sbox .sv{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);}
+.sbox.hl{border:1px solid #fff2;background:linear-gradient(135deg,#1a3a5c44,#3b1a5c44);}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;padding:14px;}
+/* MISC */
+.lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;}
+.calc-row{display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid #fff1;margin-top:6px;font-size:13px;color:var(--dim);}
+.calc-row span{font-weight:700;color:var(--gold);}
+.btn{padding:14px 22px;border:none;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-weight:700;font-size:15px;cursor:pointer;transition:opacity .15s;}
+.btn:active{opacity:.8;}
+.bsave{background:linear-gradient(135deg,var(--bar-l),var(--spa-l));color:#fff;width:100%;font-size:17px;padding:17px;}
+.bout{background:transparent;border:1.5px solid #fff2;color:var(--dim);padding:8px 14px;font-size:12px;}
+.pct{display:inline-block;padding:1px 7px;border-radius:20px;font-size:11px;font-weight:700;background:var(--spa);color:var(--spa-a);}
+/* TOAST */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#fff;padding:12px 26px;border-radius:50px;font-weight:600;font-size:14px;transition:transform .3s;z-index:999;white-space:nowrap;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+#toast.err{background:var(--red);}
+#pin-modal.open{display:flex;}
+.pinbtn{padding:16px;border:1px solid #ffffff15;border-radius:var(--rs);background:var(--s2);color:var(--tx);font-size:22px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;}
+.pinbtn:active{background:var(--s3);}
+/* HISTORY */
+.hi{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid #fff1;cursor:pointer;}
+.hi:hover{background:var(--s2);}
+.hi .hd{font-weight:600;font-size:14px;}
+.hi .hm{font-size:12px;color:var(--dim);margin-top:2px;}
+.hi .ht{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold);}
+.colhdr{padding:7px 14px;background:var(--s2);font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;}
+@media(max-width:580px){
+  .g3{grid-template-columns:1fr 100px 100px;}
+  .g4{grid-template-columns:1fr 85px 85px;}
+  .fg{grid-template-columns:1fr 1fr;}
+  .cg{grid-template-columns:32px 1fr 90px 90px;}
+}
+@media(max-width:420px){
+  .g3{grid-template-columns:1fr 90px 90px;}
+  .cg{grid-template-columns:28px 1fr 80px 80px;}
+}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <h1>ANAM</h1>
+  <p class="sub">Spa &amp; Cocktail Lounge</p>
+  <p style="font-size:13px;color:var(--dim)">Daily Operations Report</p>
+  <button onclick="startApp()">OPEN DAILY REPORT</button>
+</div>
+
+<div id="app">
+  <div id="topbar">
+    <div class="logo">ANAM</div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="btn bout" onclick="exportCSV()">⬇ CSV</button>
+      <div class="clock"><strong id="ck-date"></strong><span id="ck-time"></span></div>
+    </div>
+  </div>
+
+  <!-- hidden legacy tabs -->
+  <div id="tabs" style="display:none">
+    <button class="tab tab-bar on"></button>
+    <button class="tab tab-spa"></button>
+    <button class="tab tab-hist"></button>
+    <button class="tab tab-week"></button>
+  </div>
+
+  <!-- NAV BAR — simple table, no fixed positioning -->
+  <div id="navrow">
+    <table><tr>
+      <td><button class="nbtn nb-bar on" id="nb-bar" onclick="switchTab('bar')"><span class="ni">🍹</span>Bar</button></td>
+      <td><button class="nbtn nb-spa" id="nb-spa" onclick="switchTab('spa')"><span class="ni">💅</span>Spa</button></td>
+      <td><button class="nbtn nb-hist" id="nb-hist" onclick="switchTab('hist')"><span class="ni">📋</span>History</button></td>
+      <td><button class="nbtn nb-week" id="nb-week" onclick="switchTab('week')"><span class="ni">📅</span>Weekly</button></td>
+    </tr></table>
+  </div>
+
+  <div id="wrap">
+
+    <!-- ══ BAR ══ -->
+    <div id="panel-bar" class="panel on">
+
+      <!-- Date -->
+      <div class="card">
+        <div class="row g2">
+          <div class="rl">Report Date</div>
+          <input type="date" id="rdate" class="inp tc" onchange="loadDay()">
+        </div>
+      </div>
+
+      <!-- STAFF -->
+      <div class="card">
+        <div class="chdr bh"><span>👥 Staff</span><span class="badge" id="b-staff">$0.00</span></div>
+        <div class="colhdr" style="display:grid;grid-template-columns:26px 1fr 90px 90px 70px 110px;gap:8px;padding:7px 14px">
+          <span></span><span>Name</span><span style="text-align:center">Tips</span><span style="text-align:center">Incentive</span><span style="text-align:center">Hrs</span><span style="text-align:center">Total</span>
+        </div>
+        <div id="staff-rows"></div>
+      </div>
+
+      <!-- REGISTER -->
+      <div class="card">
+        <div class="chdr bh"><span>🏧 Cash Register</span></div>
+        <div class="row" style="background:var(--s2);padding:6px 14px">
+          <div style="flex:1;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px"></div>
+          <div style="width:120px;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;text-align:center">Opening</div>
+          <div style="width:120px;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;text-align:center;margin-left:8px">Closing</div>
+        </div>
+        <div class="row g3"><div class="rl">Person</div><input class="inp tl" id="cr-op" placeholder="Name"><input class="inp tl" id="cr-cp" placeholder="Name"></div>
+        <div class="row g3"><div class="rl">Register ($)</div><input type="number" class="inp" id="cr-or" placeholder="0.00" oninput="calcReg()"><input type="number" class="inp" id="cr-cr" placeholder="0.00" oninput="calcReg()"></div>
+        <div class="row g3"><div class="rl">Save ($)</div><input type="number" class="inp" id="cr-os" placeholder="0.00" oninput="calcReg()"><input type="number" class="inp" id="cr-cs" placeholder="0.00" oninput="calcReg()"></div>
+        <div class="row g3"><div class="rl" style="font-weight:700">Total</div><input class="inp" id="cr-ot" readonly value="$0.00"><input class="inp" id="cr-ct" readonly value="$0.00"></div>
+        <div class="row g2"><div class="rl">Difference</div><input class="inp" id="cr-df" readonly value="$0.00"></div>
+      </div>
+
+      <!-- SALES -->
+      <div class="card">
+        <div class="chdr bh"><span>📈 Sales Report</span><span class="badge" id="b-bar">$0.00</span></div>
+        <div id="sales-rows"></div>
+        <div class="row g2" style="background:var(--s2)">
+          <div>
+            <div class="rl" style="font-weight:700">Bar Total</div>
+            <div style="font-size:10px;color:var(--bar-a);margin-top:2px">Enter manually from register</div>
+          </div>
+          <input type="number" class="inp" id="bar-total" placeholder="0.00" oninput="$('b-bar').textContent=fm(fv('bar-total'))" style="font-weight:700;color:var(--gold)">
+        </div>
+      </div>
+
+      <!-- CARD TIPS -->
+      <div class="card">
+        <div class="chdr bh"><span>💳 Card Tips</span><span class="badge" id="b-tips">$0.00</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;">
+          <div>
+            <div class="colhdr">Card Tips</div>
+            <div id="ctips-rows"></div>
+            <div class="row g2"><div class="rl" style="font-weight:700">Total</div><input class="inp" id="ct-tot" readonly value="$0.00"></div>
+          </div>
+          <div style="border-left:1px solid #fff1">
+            <div class="colhdr">ATH Movil Tips</div>
+            <div id="atips-rows"></div>
+            <div class="row g2"><div class="rl" style="font-weight:700">Total</div><input class="inp" id="at-tot" readonly value="$0.00"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIP POOL CALCULATOR -->
+      <div class="card">
+        <div class="chdr bh"><span>🔀 Tip Pool Calculator</span><span class="badge" id="b-pool">$0.00</span></div>
+        <div style="padding:10px 14px;font-size:12px;color:var(--dim);border-bottom:1px solid #fff1;line-height:1.7">
+          Tips are split by hours worked during <b style="color:var(--tx)">overlap windows only</b>. Solo time = bartender keeps 100%.
+        </div>
+
+        <!-- Time windows -->
+        <div style="padding:12px 14px">
+          <div class="lbl" style="margin-bottom:8px">⏱ Shift Windows — pulled from staff clock-in times</div>
+          <div id="pool-staff-times" style="margin-bottom:12px"></div>
+
+          <div class="lbl" style="margin-bottom:8px">💵 Tip Pools — enter tips collected in each window</div>
+          <div id="pool-windows"></div>
+          <button class="btn" style="background:var(--bar);color:var(--bar-a);padding:9px 18px;font-size:13px;margin-top:10px;border:1px solid var(--bar-a)" onclick="addPoolWindow()">+ Add Window</button>
+        </div>
+
+        <!-- Results -->
+        <div style="border-top:1px solid #fff1">
+          <div class="colhdr" style="display:grid;grid-template-columns:1fr 90px 90px 110px;gap:8px;padding:7px 14px">
+            <span>Bartender</span><span style="text-align:center">Solo Tips</span><span style="text-align:center">Shared Tips</span><span style="text-align:center">Total Tips</span>
+          </div>
+          <div id="pool-results"></div>
+        </div>
+      </div>
+
+      <!-- EXPENSES -->
+      <div class="card">
+        <div class="chdr bh"><span>🧾 Expenses</span><span class="badge" id="b-exp">$0.00</span></div>
+        <div id="exp-rows"></div>
+        <div class="row g2" style="background:var(--s2)"><div class="rl" style="font-weight:700">Total</div><input class="inp" id="exp-tot" readonly value="$0.00"></div>
+      </div>
+
+      <!-- COMMENTS -->
+      <div class="card">
+        <div class="chdr bh"><span>📝 Comments</span></div>
+        <div style="padding:12px 14px"><textarea id="bar-notes" class="inp tl" style="height:72px;resize:none" placeholder="Notes for today..."></textarea></div>
+      </div>
+
+      <button class="btn bsave" onclick="saveDay()">💾 SAVE DAY</button>
+    </div>
+
+    <!-- ══ SPA ══ -->
+    <div id="panel-spa" class="panel spa">
+      <div class="card">
+        <div class="chdr sh"><span>💅 Spa Daily Report</span><span class="badge" id="b-spa">$0.00</span></div>
+        <div class="row g2">
+          <div><div class="rl">Total Spa Revenue</div><div class="rs">Enter total from Sam4s Z-report</div></div>
+          <input type="number" class="inp" id="spa-rev" placeholder="0.00" oninput="calcSpa()">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="chdr sh"><span>💇 Technicians — tap to expand</span></div>
+        <div class="colhdr" style="display:grid;grid-template-columns:26px 1fr 90px 55px 100px 100px 110px;gap:8px;padding:7px 14px">
+          <span></span><span>Name</span><span style="text-align:center">Svc Total</span><span style="text-align:center">%</span><span style="text-align:center">Commission</span><span style="text-align:center">Tips</span><span style="text-align:center">Daily Pay</span>
+        </div>
+        <div id="tech-rows"></div>
+      </div>
+
+      <div class="card">
+        <div class="chdr sh"><span>📊 Spa Grand Totals</span><span class="badge" id="b-spa-grand">$0.00</span></div>
+
+        <!-- Per-tech breakdown table -->
+        <div class="colhdr" style="display:grid;grid-template-columns:1fr 110px 110px 110px;gap:8px;padding:7px 14px">
+          <span>Technician</span>
+          <span style="text-align:center">Gross Sales</span>
+          <span style="text-align:center">Before Comm.</span>
+          <span style="text-align:center">After Comm.</span>
+        </div>
+        <div id="spa-tech-totals"></div>
+
+        <!-- Grand total row -->
+        <div style="display:grid;grid-template-columns:1fr 110px 110px 110px;gap:8px;padding:10px 14px;background:var(--s3);border-top:2px solid var(--spa-a)">
+          <div style="font-weight:700;font-size:13px;color:var(--spa-a)">GRAND TOTAL</div>
+          <input class="inp" id="gt-gross" readonly value="$0.00" style="text-align:center;font-weight:700">
+          <input class="inp" id="gt-before" readonly value="$0.00" style="text-align:center;font-weight:700">
+          <input class="inp" id="gt-after" readonly value="$0.00" style="text-align:center;color:var(--gold);font-weight:700">
+        </div>
+
+        <!-- Summary boxes -->
+        <div class="sgrid" id="spa-summ"></div>
+      </div>
+
+      <div class="card">
+        <div class="chdr sh"><span>📝 Comments</span></div>
+        <div style="padding:12px 14px"><textarea id="spa-notes" class="inp tl" style="height:72px;resize:none" placeholder="Spa notes..."></textarea></div>
+      </div>
+
+      <button class="btn bsave" onclick="saveDay()">💾 SAVE DAY</button>
+    </div>
+
+    <!-- ══ HISTORY ══ -->
+    <div id="panel-hist" class="panel">
+      <div class="card">
+        <div class="chdr" style="background:var(--s2);color:var(--tx)"><span>📋 Past Reports</span></div>
+        <div id="hist-list"><div style="padding:20px;text-align:center;color:var(--dim)">No saved reports yet.</div></div>
+      </div>
+      <button class="btn bout" style="width:100%;margin-top:6px;padding:13px" onclick="exportCSV()">⬇ Export All as CSV</button>
+    </div>
+
+    <!-- ══ WEEKLY ══ -->
+    <div id="panel-week" class="panel">
+
+      <!-- Week selector -->
+      <div class="card">
+        <div class="chdr" style="background:#1a3d1a;color:#81c784"><span>📅 Weekly Totals</span><span class="badge" id="wk-grand">$0.00</span></div>
+        <div class="row g2">
+          <div><div class="rl">Week Starting (Monday)</div><div class="rs">Tap any day row to expand full detail</div></div>
+          <input type="date" id="wk-start" class="inp tc" onchange="renderWeek()">
+        </div>
+        <div style="padding:8px 14px;display:flex;gap:8px">
+          <button class="btn" style="background:#1a3d1a;color:#81c784;border:1px solid #81c78433;padding:9px 16px;font-size:12px;flex:1" onclick="prevWeek()">◀ Prev</button>
+          <button class="btn" style="background:#1a3d1a;color:#81c784;border:1px solid #81c78433;padding:9px 16px;font-size:12px;flex:1" onclick="thisWeek()">This Week</button>
+          <button class="btn" style="background:#1a3d1a;color:#81c784;border:1px solid #81c78433;padding:9px 16px;font-size:12px;flex:1" onclick="nextWeek()">Next ▶</button>
+        </div>
+      </div>
+
+      <!-- Day-by-day summary -->
+      <div class="card">
+        <div class="chdr" style="background:var(--s2);color:var(--tx)"><span>📆 Daily Breakdown</span></div>
+        <div class="colhdr" style="display:grid;grid-template-columns:90px 1fr 1fr 1fr 1fr 80px;gap:6px;padding:7px 14px">
+          <span>Day</span><span style="text-align:right">Bar</span><span style="text-align:right">Spa</span><span style="text-align:right">Staff Pay</span><span style="text-align:right">Expenses</span><span style="text-align:right">Total</span>
+        </div>
+        <div id="wk-days"></div>
+        <div style="display:grid;grid-template-columns:90px 1fr 1fr 1fr 1fr 80px;gap:6px;padding:10px 14px;background:var(--s3);border-top:2px solid #81c784">
+          <div style="font-weight:700;font-size:12px;color:#81c784">WEEK</div>
+          <input class="inp" id="wk-bar-tot"   readonly value="$0.00" style="text-align:right;font-size:13px;pointer-events:none">
+          <input class="inp" id="wk-spa-tot"   readonly value="$0.00" style="text-align:right;font-size:13px;pointer-events:none">
+          <input class="inp" id="wk-staff-tot" readonly value="$0.00" style="text-align:right;font-size:13px;pointer-events:none">
+          <input class="inp" id="wk-exp-tot"   readonly value="$0.00" style="text-align:right;font-size:13px;pointer-events:none">
+          <input class="inp" id="wk-day-tot"   readonly value="$0.00" style="text-align:right;font-size:13px;color:var(--gold);font-weight:700;pointer-events:none">
+        </div>
+      </div>
+
+      <!-- Sales breakdown -->
+      <div class="card">
+        <div class="chdr" style="background:var(--bar);color:var(--bar-a)"><span>📈 Bar Sales — Weekly</span></div>
+        <div class="colhdr" style="display:grid;grid-template-columns:1fr 110px;gap:8px;padding:7px 14px">
+          <span>Category</span><span style="text-align:right">Week Total</span>
+        </div>
+        <div id="wk-sales"></div>
+        <div style="display:grid;grid-template-columns:1fr 110px;gap:8px;padding:9px 14px;background:var(--s3);border-top:2px solid var(--bar-a)">
+          <div style="font-weight:700;font-size:12px;color:var(--bar-a)">BAR TOTAL</div>
+          <input class="inp" id="wk-sales-tot" readonly value="$0.00" style="text-align:right;font-size:13px;color:var(--gold);font-weight:700;pointer-events:none">
+        </div>
+      </div>
+
+      <!-- Card & ATH tips -->
+      <div class="card">
+        <div class="chdr" style="background:var(--bar);color:var(--bar-a)"><span>💳 Tips — Weekly</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr">
+          <div>
+            <div class="colhdr">Card Tips Total</div>
+            <div style="padding:12px 14px;text-align:right">
+              <div style="font-size:11px;color:var(--dim);margin-bottom:4px">WEEK TOTAL</div>
+              <input class="inp" id="wk-ctips" readonly value="$0.00" style="font-size:18px;color:var(--gold);font-weight:700;pointer-events:none">
+            </div>
+          </div>
+          <div style="border-left:1px solid #fff1">
+            <div class="colhdr">ATH Movil Tips Total</div>
+            <div style="padding:12px 14px;text-align:right">
+              <div style="font-size:11px;color:var(--dim);margin-bottom:4px">WEEK TOTAL</div>
+              <input class="inp" id="wk-atips" readonly value="$0.00" style="font-size:18px;color:var(--gold);font-weight:700;pointer-events:none">
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 130px;gap:8px;padding:9px 14px;background:var(--s3);border-top:2px solid var(--bar-a)">
+          <div style="font-weight:700;font-size:12px;color:var(--bar-a)">COMBINED TIPS</div>
+          <input class="inp" id="wk-alltips" readonly value="$0.00" style="text-align:right;font-size:13px;color:var(--gold);font-weight:700;pointer-events:none">
+        </div>
+      </div>
+
+      <!-- Cash register weekly -->
+      <div class="card">
+        <div class="chdr" style="background:var(--bar);color:var(--bar-a)"><span>🏧 Register — Weekly</span></div>
+        <div class="colhdr" style="display:grid;grid-template-columns:1fr 110px 110px;gap:8px;padding:7px 14px">
+          <span>Day</span><span style="text-align:right">Open</span><span style="text-align:right">Close</span>
+        </div>
+        <div id="wk-reg"></div>
+        <div style="display:grid;grid-template-columns:1fr 110px 110px;gap:8px;padding:9px 14px;background:var(--s3);border-top:2px solid var(--bar-a)">
+          <div style="font-weight:700;font-size:12px;color:var(--bar-a)">WEEK AVG</div>
+          <input class="inp" id="wk-reg-open"  readonly value="$0.00" style="text-align:right;font-size:13px;pointer-events:none">
+          <input class="inp" id="wk-reg-close" readonly value="$0.00" style="text-align:right;font-size:13px;pointer-events:none">
+        </div>
+      </div>
+
+      <!-- Staff weekly pay -->
+      <div class="card">
+        <div class="chdr" style="background:var(--bar);color:var(--bar-a)"><span>👥 Staff Weekly Pay</span></div>
+        <div class="colhdr" style="display:grid;grid-template-columns:1fr 70px 85px 85px 75px 95px;gap:6px;padding:7px 14px">
+          <span>Name</span><span style="text-align:center">Hours</span><span style="text-align:right">Base Pay</span><span style="text-align:right">Tips</span><span style="text-align:right">Incentive</span><span style="text-align:right">Total</span>
+        </div>
+        <div id="wk-staff"></div>
+        <div style="display:grid;grid-template-columns:1fr 70px 85px 85px 75px 95px;gap:6px;padding:9px 14px;background:var(--s3);border-top:2px solid var(--bar-a)">
+          <div style="font-weight:700;font-size:12px;color:var(--bar-a)">TOTALS</div>
+          <input class="inp" id="wk-s-hrs"  readonly value="0h"    style="text-align:center;font-size:12px;pointer-events:none">
+          <input class="inp" id="wk-s-base" readonly value="$0.00" style="text-align:right;font-size:13px;pointer-events:none">
+          <input class="inp" id="wk-s-tips" readonly value="$0.00" style="text-align:right;font-size:13px;pointer-events:none">
+          <input class="inp" id="wk-s-inc"  readonly value="$0.00" style="text-align:right;font-size:13px;pointer-events:none">
+          <input class="inp" id="wk-s-tot"  readonly value="$0.00" style="text-align:right;font-size:13px;color:var(--gold);font-weight:700;pointer-events:none">
+        </div>
+      </div>
+
+      <!-- Spa tech weekly -->
+      <div class="card">
+        <div class="chdr" style="background:var(--spa);color:var(--spa-a)"><span>💅 Spa Weekly Breakdown</span></div>
+        <div class="colhdr" style="display:grid;grid-template-columns:1fr 45px 90px 90px 90px 70px 100px;gap:5px;padding:7px 14px">
+          <span>Tech</span><span style="text-align:center">%</span><span style="text-align:right">Gross</span><span style="text-align:right">Commission</span><span style="text-align:right">Tips</span><span style="text-align:right">Materials</span><span style="text-align:right">Week Pay</span>
+        </div>
+        <div id="wk-techs"></div>
+        <div style="display:grid;grid-template-columns:1fr 45px 90px 90px 90px 70px 100px;gap:5px;padding:9px 14px;background:var(--s3);border-top:2px solid var(--spa-a)">
+          <div style="font-weight:700;font-size:12px;color:var(--spa-a)">TOTALS</div>
+          <div></div>
+          <input class="inp" id="wk-t-gross" readonly value="$0.00" style="text-align:right;font-size:12px;pointer-events:none">
+          <input class="inp" id="wk-t-comm"  readonly value="$0.00" style="text-align:right;font-size:12px;pointer-events:none">
+          <input class="inp" id="wk-t-tips"  readonly value="$0.00" style="text-align:right;font-size:12px;pointer-events:none">
+          <input class="inp" id="wk-t-mat"   readonly value="$0.00" style="text-align:right;font-size:12px;pointer-events:none">
+          <input class="inp" id="wk-t-pay"   readonly value="$0.00" style="text-align:right;font-size:12px;color:var(--gold);font-weight:700;pointer-events:none">
+        </div>
+      </div>
+
+      <!-- Expenses weekly -->
+      <div class="card">
+        <div class="chdr" style="background:var(--bar);color:var(--bar-a)"><span>🧾 Expenses — Weekly</span></div>
+        <div class="colhdr" style="display:grid;grid-template-columns:70px 1fr 110px;gap:8px;padding:7px 14px">
+          <span>Day</span><span>Description</span><span style="text-align:right">Amount</span>
+        </div>
+        <div id="wk-exps"></div>
+        <div style="display:grid;grid-template-columns:1fr 110px;gap:8px;padding:9px 14px;background:var(--s3);border-top:2px solid var(--bar-a)">
+          <div style="font-weight:700;font-size:12px;color:var(--bar-a)">TOTAL EXPENSES</div>
+          <input class="inp" id="wk-exps-tot" readonly value="$0.00" style="text-align:right;font-size:13px;color:var(--red);font-weight:700;pointer-events:none">
+        </div>
+      </div>
+
+      <!-- Grand total summary boxes -->
+      <div class="card">
+        <div class="chdr" style="background:linear-gradient(135deg,#1a3d1a,#1a3a5c);color:#81c784"><span>🏆 Week Grand Summary</span></div>
+        <div class="sgrid" id="wk-summary"></div>
+      </div>
+
+      <button class="btn bout" style="width:100%;margin-top:6px;padding:13px" onclick="exportWeekCSV()">⬇ Export Week as CSV</button>
+      <div style="height:24px"></div>
+    </div>
+
+  </div><!-- wrap -->
+</div><!-- app -->
+
+<div id="toast"></div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────
+const STAFF = [
+  {n:'Lucas Perry',   pay:9},
+  {n:'Kathey Cruz',   pay:9},
+  {n:'Indy Arizmendi',pay:8},
+  {n:'Andrea Gonzales',pay:8},
+  {n:'Kiara',         pay:8},
+  {n:'Jelinna',       pay:9},
+  {n:'Sol',           pay:9},
+  {n:'Misc',          pay:9},
+];
+const SALES  = ['Credit Total','ATH Total','ATH Movil','Cash','Gift Card (-)','Gift Card (+)','Food Total','Spa Total'];
+const TECHS  = [
+  {n:'Nyda',p:.60},{n:'Cynthia',p:.60},{n:'Sol',p:.50},{n:'Krystle',p:.60},
+  {n:'Yarianda',p:.50},{n:'Heidi',p:.50},{n:'Angela',p:.50},{n:'Misc.',p:.50}
+];
+const N_CLIENTS = 12, N_STAFF_TIPS = 30, N_CARD_TIPS = 40, N_EXP = 5, MAT = 4;
+
+// ── HELPERS ─────────────────────────────────────────────────
+const $  = id => document.getElementById(id);
+const fv = id => parseFloat($( id)?.value) || 0;
+const fm = n  => '$' + (parseFloat(n)||0).toFixed(2);
+const today = () => new Date().toISOString().split('T')[0];
+
+// ── CLOCK ───────────────────────────────────────────────────
+function tick(){
+  const d = new Date();
+  $('ck-date').textContent = d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  $('ck-time').textContent = d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ── START ───────────────────────────────────────────────────
+function startApp(){
+  $('splash').style.display='none';
+  $('app').style.display='block';
+  $('navrow').style.display='block';
+  $('rdate').value = today();
+  buildAll();
+  tick(); setInterval(tick,1000);
+  loadDay();
+}
+
+function buildAll(){
+  buildStaff(); buildSales(); buildCardTips(); buildExpenses(); buildTechs();
+  initPoolWindows();
+}
+
+// ── BUILD STAFF ─────────────────────────────────────────────
+function buildStaff(){
+  const c = $('staff-rows'); c.innerHTML='';
+  STAFF.forEach((staff,i)=>{
+    const bg = i%2?'var(--s2)':'var(--s1)';
+    const tipRows = Array.from({length:N_STAFF_TIPS},(_,t)=>`
+      <div class="tg">
+        <div style="text-align:center;font-size:11px;color:var(--dim)">#${t+1}</div>
+        <input class="inp tl" id="stn-${i}-${t}" placeholder="Note / table" style="font-size:13px">
+        <input type="number" class="inp" id="sta-${i}-${t}" placeholder="0.00" oninput="cStaff(${i})">
+      </div>`).join('');
+
+    c.innerHTML += `
+    <div style="background:${bg}">
+      <div class="acc-hdr" style="display:grid;grid-template-columns:26px 1fr 90px 90px 70px 110px;gap:8px;background:${bg}" onclick="togStaff(${i})">
+        <div class="arr" id="sarr-${i}">▶</div>
+        <div style="font-size:14px;font-weight:500">${staff.n}</div>
+        <input class="inp" id="s-tips-${i}" readonly value="$0.00" style="font-size:13px;pointer-events:none">
+        <input class="inp" id="s-inc-d-${i}" readonly value="$0.00" style="font-size:13px;pointer-events:none">
+        <input class="inp tc" id="s-hrs-${i}" readonly value="0h" style="font-size:12px;pointer-events:none">
+        <input class="inp" id="s-tot-${i}" readonly value="$${staff.pay}.00" style="font-size:13px;color:var(--gold);pointer-events:none">
+      </div>
+      <div class="acc-body" id="sbody-${i}">
+        <div class="fg" style="margin-bottom:10px">
+          <div class="staff-field"><div class="lbl">⏰ Start</div><input type="time" class="inp tc" id="s-st-${i}" oninput="cStaff(${i})"></div>
+          <div class="staff-field"><div class="lbl">⏰ Finish</div><input type="time" class="inp tc" id="s-en-${i}" oninput="cStaff(${i})"></div>
+          <div class="staff-field"><div class="lbl">💵 Base Pay ($/hr)</div><input type="number" class="inp" id="s-pay-${i}" value="${staff.pay}" oninput="cStaff(${i})"></div>
+          <div class="staff-field"><div class="lbl">🎁 Incentive ($)</div><input type="number" class="inp" id="s-inc-${i}" placeholder="0.00" oninput="cStaff(${i})"></div>
+          <div class="staff-field" style="grid-column:span 2"><div class="lbl">📝 Notes</div><input class="inp tl" id="s-note-${i}" placeholder="Notes..."></div>
+        </div>
+        <div class="lbl" style="margin-bottom:6px">💳 Tips Breakdown</div>
+        <div style="display:grid;grid-template-columns:26px 1fr 115px;gap:7px;padding:5px 0;border-bottom:1px solid #fff1;margin-bottom:4px">
+          <span></span><span style="font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px">Note / Table</span><span style="font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;text-align:center">Amount</span>
+        </div>
+        ${tipRows}
+        <div style="display:grid;grid-template-columns:1fr 115px;gap:8px;padding:6px 0;border-top:1px solid #fff1;margin-top:4px">
+          <div style="font-size:12px;font-weight:700;color:var(--bar-a);text-align:right;align-self:center">Tips Total →</div>
+          <input class="inp" id="s-tipsub-${i}" readonly value="$0.00">
+        </div>
+        <div style="margin-top:8px;padding:9px 11px;background:var(--s2);border-radius:var(--rs);font-size:12px;color:var(--dim);line-height:2">
+          💵 Pay: <b id="sd-pay-${i}" style="color:var(--tx)">0h × $${staff.pay}/hr = $0.00</b><br>
+          💳 Tips: <b id="sd-tips-${i}" style="color:var(--bar-a)">$0.00</b> &nbsp;+&nbsp; 🎁 Incentive: <b id="sd-inc-${i}" style="color:var(--green)">$0.00</b><br>
+          <span style="border-top:1px solid #fff1;display:block;margin-top:4px;padding-top:4px">Total Take-Home: <b id="sd-tot-${i}" style="color:var(--gold);font-size:15px">$0.00</b></span>
+        </div>
+      </div>
+    </div>`;
+  });
+  STAFF.forEach((_,i) => cStaff(i));
+}
+
+function togStaff(i){
+  $(`sbody-${i}`).classList.toggle('open');
+  $(`sarr-${i}`).classList.toggle('open');
+}
+
+// ── CALC STAFF ──────────────────────────────────────────────
+function cStaff(i){
+  const s=$(`s-st-${i}`)?.value, e=$(`s-en-${i}`)?.value;
+  let hrs=0;
+  if(s&&e){
+    const[sh,sm]=s.split(':').map(Number),[eh,em]=e.split(':').map(Number);
+    hrs=((eh*60+em)-(sh*60+sm))/60;
+    if(hrs<0)hrs+=24;
+    hrs=Math.round(hrs*100)/100;
+  }
+  let tips=0;
+  for(let t=0;t<N_STAFF_TIPS;t++) tips+=fv(`sta-${i}-${t}`);
+
+  const rate = fv(`s-pay-${i}`);       // $/hr
+  const earnedPay = Math.round(hrs * rate * 100) / 100;  // hrs × rate
+  const inc  = fv(`s-inc-${i}`);
+  const tot  = earnedPay + tips + inc;  // earned pay + tips + incentive
+
+  $(`s-hrs-${i}`).value    = hrs>0 ? hrs+'h' : '0h';
+  $(`s-tipsub-${i}`).value = fm(tips);
+  $(`s-tips-${i}`).value   = fm(tips);
+  $(`s-inc-d-${i}`).value  = fm(inc);
+  $(`s-tot-${i}`).value    = fm(tot);
+
+  // Detail summary inside accordion
+  $(`sd-pay-${i}`).textContent  = `${hrs}h × $${rate}/hr = ${fm(earnedPay)}`;
+  $(`sd-tips-${i}`).textContent = fm(tips);
+  $(`sd-inc-${i}`).textContent  = fm(inc);
+  $(`sd-tot-${i}`).textContent  = fm(tot);
+
+  cStaffTot();
+  initPoolWindows();
+}
+function cStaffTot(){
+  let t=0;
+  STAFF.forEach((_,i)=>{
+    const s=$(`s-st-${i}`)?.value, e=$(`s-en-${i}`)?.value;
+    let hrs=0;
+    if(s&&e){const[sh,sm]=s.split(':').map(Number),[eh,em]=e.split(':').map(Number);hrs=((eh*60+em)-(sh*60+sm))/60;if(hrs<0)hrs+=24;}
+    const earned=hrs*fv(`s-pay-${i}`);
+    let tips=0; for(let j=0;j<N_STAFF_TIPS;j++)tips+=fv(`sta-${i}-${j}`);
+    t+=earned+tips+fv(`s-inc-${i}`);
+  });
+  $('b-staff').textContent=fm(t);
+}
+
+// ── BUILD SALES ─────────────────────────────────────────────
+function buildSales(){
+  const c=$('sales-rows'); c.innerHTML='';
+  SALES.forEach((nm,i)=>{
+    const bg=i%2?'var(--s2)':'var(--s1)';
+    const isSpaTotal = nm === 'Spa Total';
+    if(isSpaTotal){
+      c.innerHTML+=`<div class="row g2" style="background:${bg}">
+        <div><div class="rl">${nm}</div><div style="font-size:10px;color:var(--spa-a);margin-top:2px">↗ Auto-linked from Spa tab — excluded from Bar Total</div></div>
+        <div style="position:relative">
+          <input class="inp" id="sl-${i}" readonly value="0.00" style="color:var(--spa-a);font-weight:700;pointer-events:none;padding-left:18px">
+          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--spa-a);font-weight:700;font-size:15px;pointer-events:none">$</span>
+        </div>
+      </div>`;
+    } else {
+      c.innerHTML+=`<div class="row g2" style="background:${bg}"><div class="rl">${nm}</div><input type="number" class="inp" id="sl-${i}" placeholder="0.00" oninput="cSales()"></div>`;
+    }
+  });
+}
+function cSales(){
+  let t=0;
+  SALES.forEach((nm,i)=>{ if(nm!=='Spa Total') t+=fv(`sl-${i}`); });
+  $('b-bar').textContent=fm(t);
+  // Bar Total is manual — don't overwrite it
+}
+
+// ── REGISTER ────────────────────────────────────────────────
+function calcReg(){
+  const ot=fv('cr-or')+fv('cr-os'), ct=fv('cr-cr')+fv('cr-cs');
+  $('cr-ot').value=fm(ot); $('cr-ct').value=fm(ct); $('cr-df').value=fm(ct-ot);
+}
+
+// ── CARD TIPS ────────────────────────────────────────────────
+function buildCardTips(){
+  const cc=$('ctips-rows'), ac=$('atips-rows'); cc.innerHTML=''; ac.innerHTML='';
+  for(let i=0;i<N_CARD_TIPS;i++){
+    const bg=i%2?'var(--s2)':'var(--s1)';
+    cc.innerHTML+=`<div class="row g2" style="background:${bg}"><div class="rl" style="color:var(--dim);font-size:13px">#${i+1}</div><input type="number" class="inp" id="ct-${i}" placeholder="0.00" oninput="cTips()"></div>`;
+    ac.innerHTML+=`<div class="row g2" style="background:${bg}"><div class="rl" style="color:var(--dim);font-size:13px">#${i+1}</div><input type="number" class="inp" id="at-${i}" placeholder="0.00" oninput="cTips()"></div>`;
+  }
+}
+function cTips(){
+  let ct=0,at=0;
+  for(let i=0;i<N_CARD_TIPS;i++){ct+=fv(`ct-${i}`);at+=fv(`at-${i}`);}
+  $('ct-tot').value=fm(ct); $('at-tot').value=fm(at); $('b-tips').textContent=fm(ct+at);
+}
+
+// ── EXPENSES ─────────────────────────────────────────────────
+function buildExpenses(){
+  const c=$('exp-rows'); c.innerHTML='';
+  for(let i=0;i<N_EXP;i++){
+    const bg=i%2?'var(--s2)':'var(--s1)';
+    c.innerHTML+=`<div class="row g2" style="background:${bg}"><input class="inp tl" id="ed-${i}" placeholder="Description"><input type="number" class="inp" id="ea-${i}" placeholder="0.00" oninput="cExp()"></div>`;
+  }
+}
+function cExp(){
+  let t=0; for(let i=0;i<N_EXP;i++)t+=fv(`ea-${i}`);
+  $('exp-tot').value=fm(t); $('b-exp').textContent=fm(t);
+}
+
+// ── BUILD TECHS ─────────────────────────────────────────────
+const CLIENTS_PER_TECH=12;
+function buildTechs(){
+  const c=$('tech-rows'); c.innerHTML='';
+  TECHS.forEach((tech,i)=>{
+    const bg=i%2?'var(--s2)':'var(--s1)';
+    const clientRows=Array.from({length:CLIENTS_PER_TECH},(_,cl)=>`
+      <div class="cg">
+        <div style="text-align:center;font-size:11px;color:var(--dim)">#${cl+1}</div>
+        <input class="inp tl" id="tcn-${i}-${cl}" placeholder="Client name" style="font-size:13px">
+        <input type="number" class="inp" id="tcs-${i}-${cl}" placeholder="0.00" oninput="calcSpa()">
+        <input type="number" class="inp" id="tct-${i}-${cl}" placeholder="0.00" oninput="calcSpa()">
+      </div>`).join('');
+
+    c.innerHTML+=`
+    <div style="background:${bg}">
+      <div class="acc-hdr" style="display:grid;grid-template-columns:26px 1fr 90px 55px 100px 100px 110px;gap:8px;background:${bg}" onclick="togTech(${i})">
+        <div class="arr spa-arr" id="tarr-${i}">▶</div>
+        <div><div style="font-size:14px;font-weight:500">${tech.n}</div><span class="pct">${Math.round(tech.p*100)}%</span></div>
+        <input class="inp" id="ts-${i}" readonly value="$0.00" style="font-size:13px;pointer-events:none">
+        <div style="text-align:center;font-size:13px;font-weight:700;color:var(--spa-a)">${Math.round(tech.p*100)}%</div>
+        <input class="inp" id="tc-${i}" readonly value="$0.00" style="font-size:13px;pointer-events:none">
+        <input class="inp" id="tt-${i}" readonly value="$0.00" style="font-size:13px;pointer-events:none">
+        <input class="inp" id="tp-${i}" readonly value="$0.00" style="font-size:13px;color:var(--gold);pointer-events:none">
+      </div>
+      <div class="acc-body" id="tbody-${i}">
+        <div style="display:grid;grid-template-columns:26px 1fr 110px 110px;gap:7px;padding:5px 0;border-bottom:1px solid #fff1;margin-bottom:4px">
+          <span></span>
+          <span style="font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px">Client Name</span>
+          <span style="font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;text-align:center">Service ($)</span>
+          <span style="font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;text-align:center">Tips ($)</span>
+        </div>
+        ${clientRows}
+        <div style="display:grid;grid-template-columns:1fr 110px 110px;gap:8px;padding:7px 0;border-top:1px solid #fff1;margin-top:4px">
+          <div style="font-size:12px;font-weight:700;color:var(--spa-a);text-align:right;align-self:center">Subtotals →</div>
+          <input class="inp" id="tss-${i}" readonly value="$0.00">
+          <input class="inp" id="tts-${i}" readonly value="$0.00">
+        </div>
+        <div style="margin-top:8px;padding:9px 11px;background:var(--s2);border-radius:var(--rs);font-size:12px;color:var(--dim);line-height:1.9">
+          Commission: <b id="td-c-${i}" style="color:var(--spa-a)">$0.00</b> + Tips: <b id="td-t-${i}" style="color:var(--spa-a)">$0.00</b> − Materials: <b style="color:var(--red)">$${MAT}.00</b> = Daily Pay: <b id="td-p-${i}" style="color:var(--gold);font-size:14px">$0.00</b>
+        </div>
+      </div>
+    </div>`;
+  });
+}
+
+function togTech(i){
+  $(`tbody-${i}`).classList.toggle('open');
+  $(`tarr-${i}`).classList.toggle('open');
+}
+
+// ── CALC SPA ─────────────────────────────────────────────────
+function calcSpa(){
+  let tC=0,tT=0,tP=0,tSv=0;
+  let techRows='';
+
+  TECHS.forEach((tech,i)=>{
+    let sv=0,tv=0;
+    for(let c=0;c<CLIENTS_PER_TECH;c++){sv+=fv(`tcs-${i}-${c}`);tv+=fv(`tct-${i}-${c}`);}
+    const comm=sv*tech.p;
+    const afterComm=sv-comm;      // what stays with the house after paying commission
+    const pay=comm+tv-MAT;        // tech's daily pay (comm + tips - materials)
+
+    $(`ts-${i}`).value=fm(sv); $(`tc-${i}`).value=fm(comm);
+    $(`tt-${i}`).value=fm(tv); $(`tp-${i}`).value=fm(pay);
+    $(`tss-${i}`).value=fm(sv); $(`tts-${i}`).value=fm(tv);
+    $(`td-c-${i}`).textContent=fm(comm);
+    $(`td-t-${i}`).textContent=fm(tv);
+    $(`td-p-${i}`).textContent=fm(pay);
+
+    tC+=comm; tT+=tv; tP+=pay; tSv+=sv;
+
+    const bg=i%2?'var(--s2)':'var(--s1)';
+    techRows+=`<div style="display:grid;grid-template-columns:1fr 110px 110px 110px;gap:8px;padding:8px 14px;background:${bg};border-bottom:1px solid #fff1">
+      <div style="font-size:13px;font-weight:500">${tech.n} <span style="font-size:11px;color:var(--spa-a);margin-left:4px">${Math.round(tech.p*100)}%</span></div>
+      <input class="inp" readonly value="${fm(sv)}" style="text-align:center;font-size:13px;pointer-events:none">
+      <input class="inp" readonly value="${fm(sv)}" style="text-align:center;font-size:13px;pointer-events:none;color:var(--tx)">
+      <input class="inp" readonly value="${fm(sv-comm)}" style="text-align:center;font-size:13px;pointer-events:none;color:var(--gold)">
+    </div>`;
+  });
+
+  $('spa-tech-totals').innerHTML=techRows;
+  $('gt-gross').value=fm(tSv);
+  $('gt-before').value=fm(tSv);
+  $('gt-after').value=fm(tSv-tC);
+  $('b-spa-grand').textContent=fm(tSv);
+  $('b-spa').textContent=fm(fv('spa-rev'));
+
+  // ── Link spa gross total into Bar > Sales Report > Spa Total ──
+  const spaIdx = SALES.indexOf('Spa Total');
+  if(spaIdx>=0 && $(`sl-${spaIdx}`)){
+    $(`sl-${spaIdx}`).value = tSv.toFixed(2);   // raw number — NOT fm() so fv() can read it
+    cSales();
+  }
+
+  $('spa-summ').innerHTML=`
+    <div class="sbox"><div class="sl">Gross Sales</div><div class="sv">${fm(tSv)}</div></div>
+    <div class="sbox"><div class="sl">Total Commission</div><div class="sv">${fm(tC)}</div></div>
+    <div class="sbox hl"><div class="sl">After Commission</div><div class="sv">${fm(tSv-tC)}</div></div>
+    <div class="sbox"><div class="sl">Materials (${TECHS.length}×$4)</div><div class="sv">${fm(TECHS.length*MAT)}</div></div>
+    <div class="sbox"><div class="sl">Total Staff Pay</div><div class="sv">${fm(tP)}</div></div>`;
+}
+
+// ── TIP POOL CALCULATOR ──────────────────────────────────────
+let poolWindows = []; // [{label, tips, startMin, endMin}]
+
+function toMin(t){ if(!t)return null; const[h,m]=t.split(':').map(Number); return h*60+m; }
+function fmTime(min){ if(min===null)return '--'; const h=Math.floor(min/60),m=min%60; return `${h%12||12}:${String(m).padStart(2,'0')} ${h<12?'AM':'PM'}`; }
+
+function initPoolWindows(){
+  // Auto-detect windows from staff times and pre-populate
+  poolWindows = [];
+  const active = STAFF.map((s,i)=>{
+    const st=toMin($(`s-st-${i}`)?.value), en=toMin($(`s-en-${i}`)?.value);
+    return st!==null&&en!==null ? {name:s.n,st,en:en<st?en+1440:en} : null;
+  }).filter(Boolean);
+
+  if(!active.length){ renderPoolWindows(); calcPool(); return; }
+
+  // Collect all unique time breakpoints
+  const points=[...new Set(active.flatMap(s=>[s.st,s.en]))].sort((a,b)=>a-b);
+  for(let i=0;i<points.length-1;i++){
+    const ws=points[i], we=points[i+1];
+    const working=active.filter(s=>s.st<=ws&&s.en>=we);
+    if(working.length>0){
+      poolWindows.push({
+        startMin:ws, endMin:we,
+        label:`${fmTime(ws)} – ${fmTime(we)}`,
+        bartenders:working.map(s=>s.name),
+        tips:0
+      });
+    }
+  }
+  renderPoolWindows(); calcPool();
+}
+
+function addPoolWindow(){
+  poolWindows.push({startMin:null,endMin:null,label:'Custom Window',bartenders:[],tips:0});
+  renderPoolWindows(); calcPool();
+}
+
+function renderPoolWindows(){
+  // Staff times summary
+  const st=$('pool-staff-times'); st.innerHTML='';
+  STAFF.forEach((s,i)=>{
+    const start=$(`s-st-${i}`)?.value, end=$(`s-en-${i}`)?.value;
+    if(start||end){
+      st.innerHTML+=`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:1px solid #fff1">
+        <span style="font-weight:500">${s.n}</span>
+        <span style="color:var(--bar-a)">${start||'?'} → ${end||'?'}</span>
+      </div>`;
+    }
+  });
+  if(!st.innerHTML) st.innerHTML=`<div style="color:var(--dim);font-size:12px">Enter staff start/finish times above first.</div>`;
+
+  // Windows
+  const pw=$('pool-windows'); pw.innerHTML='';
+  if(!poolWindows.length){
+    pw.innerHTML=`<div style="color:var(--dim);font-size:12px;padding:4px 0">No windows yet. Enter staff times or click + Add Window.</div>`;
+    return;
+  }
+
+  poolWindows.forEach((w,wi)=>{
+    const bg=wi%2?'var(--s2)':'var(--s1)';
+    const bartList = w.bartenders.length
+      ? w.bartenders.join(', ')
+      : '<span style="color:var(--dim)">No staff detected</span>';
+
+    pw.innerHTML+=`
+    <div style="background:${bg};border-radius:var(--rs);margin-bottom:8px;padding:10px 12px;border:1px solid #fff1">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--bar-a)">${w.label}</div>
+          <div style="font-size:11px;color:var(--dim);margin-top:2px">👤 ${bartList}</div>
+        </div>
+        <button onclick="removeWindow(${wi})" style="background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;padding:0 4px">×</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 130px;gap:8px;align-items:center">
+        <div style="font-size:12px;color:var(--dim)">Tips collected this window ($)</div>
+        <input type="number" class="inp" id="pw-tips-${wi}" value="${w.tips||''}" placeholder="0.00" oninput="updateWindowTips(${wi})">
+      </div>
+    </div>`;
+  });
+}
+
+function removeWindow(wi){
+  poolWindows.splice(wi,1);
+  renderPoolWindows(); calcPool();
+}
+
+function updateWindowTips(wi){
+  poolWindows[wi].tips = parseFloat($(`pw-tips-${wi}`)?.value)||0;
+  calcPool();
+}
+
+function calcPool(){
+  const results={}; // name -> {solo, shared}
+  STAFF.forEach(s=>{ results[s.n]={solo:0,shared:0}; });
+
+  let grandTotal=0;
+  poolWindows.forEach(w=>{
+    const tips=w.tips||0;
+    grandTotal+=tips;
+    if(!w.bartenders||!w.bartenders.length) return;
+
+    if(w.bartenders.length===1){
+      // Solo window — bartender keeps all
+      const nm=w.bartenders[0];
+      if(results[nm]) results[nm].solo+=tips;
+    } else {
+      // Shared window — split proportionally by hours in that window
+      const winMins=(w.endMin!==null&&w.startMin!==null)?(w.endMin-w.startMin):60;
+      // Each worker in window gets equal share of the overlap (same window = same hours in it)
+      const share=tips/w.bartenders.length;
+      w.bartenders.forEach(nm=>{ if(results[nm]) results[nm].shared+=share; });
+    }
+  });
+
+  $('b-pool').textContent=fm(grandTotal);
+
+  const res=$('pool-results'); res.innerHTML='';
+  let anyResult=false;
+  STAFF.forEach((s,i)=>{
+    const r=results[s.n];
+    if(!r||(r.solo===0&&r.shared===0)) return;
+    anyResult=true;
+    const tot=r.solo+r.shared;
+    const bg=i%2?'var(--s2)':'var(--s1)';
+    res.innerHTML+=`<div style="display:grid;grid-template-columns:1fr 90px 90px 110px;gap:8px;padding:9px 14px;background:${bg};border-bottom:1px solid #fff1;align-items:center">
+      <div style="font-size:13px;font-weight:500">${s.n}</div>
+      <input class="inp" readonly value="${fm(r.solo)}" style="text-align:center;font-size:13px;pointer-events:none">
+      <input class="inp" readonly value="${fm(r.shared)}" style="text-align:center;font-size:13px;pointer-events:none">
+      <input class="inp" readonly value="${fm(tot)}" style="text-align:center;font-size:13px;color:var(--gold);font-weight:700;pointer-events:none">
+    </div>`;
+  });
+  if(!anyResult) res.innerHTML=`<div style="padding:14px;text-align:center;color:var(--dim);font-size:13px">Enter tips per window above to see split.</div>`;
+}
+
+// ── SAVE / LOAD ──────────────────────────────────────────────
+function dayKey(){ return 'anam_'+($('rdate').value||today()); }
+
+function collectData(){
+  const date=$('rdate').value||today();
+  const d={date,bar:{},spa:{}};
+  d.bar.staff=STAFF.map((staff,i)=>{
+    const s=$(`s-st-${i}`)?.value||'', e=$(`s-en-${i}`)?.value||'';
+    let hrs=0;
+    if(s&&e){const[sh,sm]=s.split(':').map(Number),[eh,em]=e.split(':').map(Number);hrs=((eh*60+em)-(sh*60+sm))/60;if(hrs<0)hrs+=24;hrs=Math.round(hrs*100)/100;}
+    const rate=fv(`s-pay-${i}`);
+    const earned=Math.round(hrs*rate*100)/100;
+    const tips=Array.from({length:N_STAFF_TIPS},(_,t)=>({note:$(`stn-${i}-${t}`)?.value||'',amt:fv(`sta-${i}-${t}`)}));
+    const tipsTotal=tips.reduce((a,t)=>a+(t.amt||0),0);
+    const inc=fv(`s-inc-${i}`);
+    return {
+      name:staff.n, start:s, end:e, hrs, rate,
+      earnedPay:earned, tipsTotal, inc,
+      totalPay:earned+tipsTotal+inc,
+      notes:$(`s-note-${i}`)?.value||'',
+      tips
+    };
+  });
+  d.bar.reg={op:$('cr-op').value,cp:$('cr-cp').value,or:fv('cr-or'),os:fv('cr-os'),cr:fv('cr-cr'),cs:fv('cr-cs')};
+  d.bar.sales=SALES.map((nm,i)=>({name:nm,amt:fv(`sl-${i}`)}));
+  d.bar.barTotal=fv('bar-total');
+  d.bar.ctips=Array.from({length:N_CARD_TIPS},(_,i)=>fv(`ct-${i}`));
+  d.bar.atips=Array.from({length:N_CARD_TIPS},(_,i)=>fv(`at-${i}`));
+  d.bar.exps=Array.from({length:N_EXP},(_,i)=>({desc:$(`ed-${i}`)?.value||'',amt:fv(`ea-${i}`)}));
+  d.bar.notes=$('bar-notes').value;
+  d.bar.poolWindows=poolWindows.map(w=>({...w}));
+  d.spa.rev=fv('spa-rev');
+  d.spa.techs=TECHS.map((tech,i)=>{
+    const clients=Array.from({length:CLIENTS_PER_TECH},(_,c)=>({name:$(`tcn-${i}-${c}`)?.value||'',svc:fv(`tcs-${i}-${c}`),tip:fv(`tct-${i}-${c}`)}));
+    const gross=clients.reduce((a,c)=>a+(c.svc||0),0);
+    const tipsTotal=clients.reduce((a,c)=>a+(c.tip||0),0);
+    const comm=gross*tech.p;
+    const mat=gross>0?MAT:0;
+    return {name:tech.n, pct:tech.p, clients, gross, tipsTotal, comm, mat, pay:comm+tipsTotal-mat};
+  });
+  d.spa.notes=$('spa-notes').value;
+  return d;
+}
+
+function saveDay(){
+  const d=collectData();
+  localStorage.setItem(dayKey(),JSON.stringify(d));
+  toast('Day saved! ✓');
+  renderHist();
+}
+
+function loadDay(){
+  const raw=localStorage.getItem(dayKey()); if(!raw)return;
+  const d=JSON.parse(raw);
+  // staff
+  (d.bar?.staff||[]).forEach((s,i)=>{
+    if($(`s-st-${i}`)){
+      $(`s-st-${i}`).value=s.start||''; $(`s-en-${i}`).value=s.end||'';
+      $(`s-pay-${i}`).value=s.pay||''; $(`s-inc-${i}`).value=s.inc||'';
+      if($(`s-note-${i}`))$(`s-note-${i}`).value=s.notes||'';
+      (s.tips||[]).forEach((t,j)=>{
+        if($(`stn-${i}-${j}`))$(`stn-${i}-${j}`).value=t.note||'';
+        if($(`sta-${i}-${j}`))$(`sta-${i}-${j}`).value=t.amt||'';
+      });
+      cStaff(i);
+    }
+  });
+  // register
+  const r=d.bar?.reg||{};
+  if($('cr-op'))$('cr-op').value=r.op||''; if($('cr-cp'))$('cr-cp').value=r.cp||'';
+  if($('cr-or'))$('cr-or').value=r.or||''; if($('cr-os'))$('cr-os').value=r.os||'';
+  if($('cr-cr'))$('cr-cr').value=r.cr||''; if($('cr-cs'))$('cr-cs').value=r.cs||'';
+  calcReg();
+  // sales
+  (d.bar?.sales||[]).forEach((s,i)=>{if($(`sl-${i}`))$(`sl-${i}`).value=s.amt||'';});
+  if($('bar-total')&&d.bar?.barTotal) $('bar-total').value=d.bar.barTotal;
+  $('b-bar').textContent=fm(fv('bar-total'));
+  cSales();
+  // tips
+  (d.bar?.ctips||[]).forEach((v,i)=>{if($(`ct-${i}`))$(`ct-${i}`).value=v||'';});
+  (d.bar?.atips||[]).forEach((v,i)=>{if($(`at-${i}`))$(`at-${i}`).value=v||'';});
+  cTips();
+  // expenses
+  (d.bar?.exps||[]).forEach((e,i)=>{
+    if($(`ed-${i}`))$(`ed-${i}`).value=e.desc||'';
+    if($(`ea-${i}`))$(`ea-${i}`).value=e.amt||'';
+  });
+  cExp();
+  if($('bar-notes'))$('bar-notes').value=d.bar?.notes||'';
+  // pool windows
+  if(d.bar?.poolWindows){
+    poolWindows=d.bar.poolWindows;
+    renderPoolWindows();
+    poolWindows.forEach((_,wi)=>{ const el=$(`pw-tips-${wi}`); if(el)el.value=poolWindows[wi].tips||''; });
+    calcPool();
+  } else {
+    initPoolWindows();
+  }
+  // spa
+  if($('spa-rev'))$('spa-rev').value=d.spa?.rev||'';
+  (d.spa?.techs||[]).forEach((t,i)=>{
+    (t.clients||[]).forEach((cl,c)=>{
+      if($(`tcn-${i}-${c}`))$(`tcn-${i}-${c}`).value=cl.name||'';
+      if($(`tcs-${i}-${c}`))$(`tcs-${i}-${c}`).value=cl.svc||'';
+      if($(`tct-${i}-${c}`))$(`tct-${i}-${c}`).value=cl.tip||'';
+    });
+  });
+  calcSpa();
+  if($('spa-notes'))$('spa-notes').value=d.spa?.notes||'';
+}
+
+// ── HISTORY ──────────────────────────────────────────────────
+function renderHist(){
+  const c=$('hist-list');
+  const keys=Object.keys(localStorage).filter(k=>k.startsWith('anam_')).sort().reverse();
+  if(!keys.length){c.innerHTML='<div style="padding:20px;text-align:center;color:var(--dim)">No saved reports yet.</div>';return;}
+  c.innerHTML=keys.map(k=>{
+    const d=JSON.parse(localStorage.getItem(k));
+    const bT=(d.bar?.sales||[]).reduce((a,s)=>a+(s.amt||0),0);
+    const sp=d.spa?.rev||0;
+    const dl=new Date(d.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    return `<div class="hi" onclick="jumpTo('${d.date}')">
+      <div><div class="hd">${dl}</div><div class="hm">Bar: ${fm(bT)} &nbsp;|&nbsp; Spa: ${fm(sp)}</div></div>
+      <div class="ht">${fm(bT+sp)}</div>
+    </div>`;
+  }).join('');
+}
+
+function jumpTo(date){
+  $('rdate').value=date; switchTab('bar'); loadDay();
+}
+
+// ── CSV ───────────────────────────────────────────────────────
+function exportCSV(){
+  const keys=Object.keys(localStorage).filter(k=>k.startsWith('anam_')).sort();
+  if(!keys.length){toast('No data yet','err');return;}
+  let csv='Date,Bar Total,Spa Revenue,Staff Pay,Expenses\n';
+  keys.forEach(k=>{
+    const d=JSON.parse(localStorage.getItem(k));
+    const bt=(d.bar?.sales||[]).reduce((a,s)=>a+(s.amt||0),0);
+    const sp=fv_val(d.spa?.rev);
+    const stp=(d.bar?.staff||[]).reduce((a,s)=>a+(s.pay||0)+(s.inc||0)+((s.tips||[]).reduce((b,t)=>b+(t.amt||0),0)),0);
+    const ex=(d.bar?.exps||[]).reduce((a,e)=>a+(e.amt||0),0);
+    csv+=`${d.date},${bt.toFixed(2)},${sp.toFixed(2)},${stp.toFixed(2)},${ex.toFixed(2)}\n`;
+  });
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='anam_reports.csv'; a.click();
+}
+function fv_val(v){return parseFloat(v)||0;}
+
+// ── WEEKLY TOTALS ─────────────────────────────────────────────
+function getMondayOf(dateStr){
+  const d = new Date(dateStr+'T12:00:00');
+  const day = d.getDay(); // 0=Sun
+  const diff = day===0 ? -6 : 1-day;
+  d.setDate(d.getDate()+diff);
+  return d.toISOString().split('T')[0];
+}
+function addDays(dateStr, n){
+  const d = new Date(dateStr+'T12:00:00');
+  d.setDate(d.getDate()+n);
+  return d.toISOString().split('T')[0];
+}
+function thisWeek(){ $('wk-start').value = getMondayOf(today()); renderWeek(); }
+function prevWeek(){ const cur=$('wk-start').value||getMondayOf(today()); $('wk-start').value=addDays(cur,-7); renderWeek(); }
+function nextWeek(){ const cur=$('wk-start').value||getMondayOf(today()); $('wk-start').value=addDays(cur,7); renderWeek(); }
+
+function getDayData(dateStr){
+  const raw=localStorage.getItem('anam_'+dateStr);
+  return raw ? JSON.parse(raw) : null;
+}
+
+function calcDayStaffHrs(s){
+  if(!s.start||!s.end) return 0;
+  const[sh,sm]=s.start.split(':').map(Number),[eh,em]=s.end.split(':').map(Number);
+  let h=((eh*60+em)-(sh*60+sm))/60; if(h<0)h+=24; return Math.round(h*100)/100;
+}
+
+function renderWeek(){
+  const mon = $('wk-start').value;
+  if(!mon){ $('wk-days').innerHTML='<div style="padding:16px;text-align:center;color:var(--dim)">Select a week above.</div>'; return; }
+
+  const DAY_NAMES=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const dates = Array.from({length:7},(_,i)=>addDays(mon,i));
+
+  // ── All accumulators ──
+  let wkBar=0, wkSpa=0, wkStaff=0, wkExp=0, wkCtips=0, wkAtips=0;
+  let wkRegOpen=0, wkRegClose=0, wkRegDays=0;
+  const salesTotals={}; SALES.forEach(nm=>salesTotals[nm]=0);
+  const staffTotals={}; STAFF.forEach(s=>staffTotals[s.n]={hrs:0,base:0,tips:0,inc:0,tot:0});
+  const techTotals={};  TECHS.forEach(t=>techTotals[t.n]={gross:0,comm:0,tips:0,mat:0,pay:0,days:0});
+  const expLines=[];
+  const regRows=[];
+
+  // ── Process each day ──
+  const dayRows = dates.map((dt,i)=>{
+    const d = getDayData(dt);
+    const label = DAY_NAMES[i]+' '+new Date(dt+'T12:00:00').toLocaleDateString('en-US',{month:'numeric',day:'numeric'});
+    const bg = i%2?'var(--s2)':'var(--s1)';
+
+    if(!d){
+      return `<div style="display:grid;grid-template-columns:90px 1fr 1fr 1fr 1fr 80px;gap:6px;padding:10px 14px;background:${bg};border-bottom:1px solid #fff1;opacity:.35">
+        <div style="font-size:13px;color:var(--dim)">${label}</div>
+        <div style="text-align:right;color:var(--dim)">—</div><div style="text-align:right;color:var(--dim)">—</div>
+        <div style="text-align:right;color:var(--dim)">—</div><div style="text-align:right;color:var(--dim)">—</div>
+        <div style="text-align:right;color:var(--dim)">No data</div>
+      </div>`;
+    }
+
+    // Bar sales — use manually entered barTotal if available, else sum sales rows
+    const barSales = d.bar?.barTotal || (d.bar?.sales||[]).reduce((a,s)=>s.name==='Spa Total'?a:a+(s.amt||0),0);
+    // Spa gross
+    let spaSales=0;
+    (d.spa?.techs||[]).forEach(t=>{(t.clients||[]).forEach(cl=>{spaSales+=cl.svc||0;});});
+    // Card/ATH tips
+    const ctips=(d.bar?.ctips||[]).reduce((a,v)=>a+v,0);
+    const atips=(d.bar?.atips||[]).reduce((a,v)=>a+v,0);
+    wkCtips+=ctips; wkAtips+=atips;
+    // Register
+    const regOpen=(d.bar?.reg?.or||0)+(d.bar?.reg?.os||0);
+    const regClose=(d.bar?.reg?.cr||0)+(d.bar?.reg?.cs||0);
+    if(regOpen||regClose){ wkRegOpen+=regOpen; wkRegClose+=regClose; wkRegDays++; }
+    regRows.push({label, open:regOpen, close:regClose, person:d.bar?.reg?.cp||''});
+
+    // Staff pay — use pre-computed fields saved in collectData
+    let staffPay=0;
+    (d.bar?.staff||[]).forEach((s,si)=>{
+      const hrs      = s.hrs      ?? calcDayStaffHrs(s);
+      const rate     = s.rate     ?? (s.pay || STAFF[si]?.pay || 0);
+      const earned   = s.earnedPay  ?? (hrs * rate);
+      const tips     = s.tipsTotal  ?? (s.tips||[]).reduce((a,t)=>a+(t.amt||0),0);
+      const inc      = s.inc     || 0;
+      const tot      = s.totalPay   ?? (earned + tips + inc);
+      staffPay += tot;
+      const key = s.name;
+      if(staffTotals[key] !== undefined){
+        staffTotals[key].hrs  += hrs;
+        staffTotals[key].base += earned;
+        staffTotals[key].tips += tips;
+        staffTotals[key].inc  += inc;
+        staffTotals[key].tot  += tot;
+      }
+    });
+    // Expenses
+    const exps=(d.bar?.exps||[]).reduce((a,e)=>a+(e.amt||0),0);
+    ;(d.bar?.exps||[]).forEach(e=>{ if(e.amt) expLines.push({day:label,desc:e.desc||'—',amt:e.amt}); });
+    // Accumulate sales
+    (d.bar?.sales||[]).forEach(s=>{ if(salesTotals[s.name]!==undefined) salesTotals[s.name]+=s.amt||0; });
+    // Accumulate spa techs — use pre-computed fields
+    (d.spa?.techs||[]).forEach(t=>{
+      const sv   = t.gross    ?? (()=>{ let x=0; (t.clients||[]).forEach(cl=>x+=cl.svc||0); return x; })();
+      const tv   = t.tipsTotal?? (()=>{ let x=0; (t.clients||[]).forEach(cl=>x+=cl.tip||0); return x; })();
+      const comm = t.comm     ?? sv*(t.pct||0);
+      const mat  = t.mat      ?? (sv>0?MAT:0);
+      const pay  = t.pay      ?? (comm+tv-mat);
+      const key  = t.name;
+      if(techTotals[key]!==undefined){
+        techTotals[key].gross+=sv; techTotals[key].comm+=comm;
+        techTotals[key].tips+=tv;  techTotals[key].mat+=mat;
+        techTotals[key].pay+=pay;  if(sv>0)techTotals[key].days++;
+      }
+    });
+
+    const dayTotal=barSales+spaSales;
+    wkBar+=barSales; wkSpa+=spaSales; wkStaff+=staffPay; wkExp+=exps;
+
+    // Staff detail for expand
+    const staffDetail=(d.bar?.staff||[]).map((s,si)=>{
+      const hrs    = s.hrs       ?? calcDayStaffHrs(s);
+      const rate   = s.rate      ?? (s.pay||STAFF[si]?.pay||0);
+      const earned = s.earnedPay ?? (hrs*rate);
+      const tips   = s.tipsTotal ?? (s.tips||[]).reduce((a,t)=>a+(t.amt||0),0);
+      const inc    = s.inc       || 0;
+      const tot    = s.totalPay  ?? (earned+tips+inc);
+      if(!tot&&!hrs) return '';
+      return `<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px;border-bottom:1px solid #fff1">
+        <span style="color:var(--tx);font-weight:500">${s.name}</span>
+        <span style="color:var(--dim)">${hrs}h×$${rate}=<b style="color:var(--bar-a)">${fm(earned)}</b> + tips<b style="color:var(--bar-a)"> ${fm(tips)}</b>${inc?` + inc<b style="color:var(--green)"> ${fm(inc)}</b>`:''} = <b style="color:var(--gold)">${fm(tot)}</b></span>
+      </div>`;
+    }).join('');
+
+    const spaDetail=(d.spa?.techs||[]).map(t=>{
+      let sv=0,tv=0; (t.clients||[]).forEach(cl=>{sv+=cl.svc||0;tv+=cl.tip||0;});
+      if(!sv&&!tv) return '';
+      const comm=sv*(t.pct||0);
+      return `<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px;border-bottom:1px solid #fff1">
+        <span style="color:var(--tx);font-weight:500">${t.name} <span style="color:var(--spa-a)">${Math.round((t.pct||0)*100)}%</span></span>
+        <span style="color:var(--dim)">Gross<b style="color:var(--spa-a)"> ${fm(sv)}</b> Comm<b style="color:var(--gold)"> ${fm(comm)}</b>${tv?` Tips<b style="color:var(--bar-a)"> ${fm(tv)}</b>`:''}</span>
+      </div>`;
+    }).join('');
+
+    const salesDetail=(d.bar?.sales||[]).filter(s=>s.amt).map(s=>
+      `<span style="font-size:12px;color:var(--dim)">${s.name}: <b style="color:var(--tx)">${fm(s.amt)}</b></span>`
+    ).join(' &nbsp;|&nbsp; ');
+
+    return `
+    <div style="background:${bg};border-bottom:1px solid #fff1">
+      <div style="display:grid;grid-template-columns:90px 1fr 1fr 1fr 1fr 80px;gap:6px;padding:10px 14px;cursor:pointer" onclick="toggleDayRow('dr-${dt}','darr-${dt}')">
+        <div style="display:flex;align-items:center;gap:5px">
+          <span id="darr-${dt}" style="font-size:12px;color:var(--bar-a);transition:transform .2s;display:inline-block">▶</span>
+          <span style="font-size:13px;font-weight:600;color:var(--bar-a)">${label}</span>
+        </div>
+        <div style="text-align:right;font-size:13px">${fm(barSales)}</div>
+        <div style="text-align:right;font-size:13px;color:var(--spa-a)">${fm(spaSales)}</div>
+        <div style="text-align:right;font-size:13px">${fm(staffPay)}</div>
+        <div style="text-align:right;font-size:13px;color:var(--red)">${fm(exps)}</div>
+        <div style="text-align:right;font-size:13px;font-weight:700;color:var(--gold)">${fm(dayTotal)}</div>
+      </div>
+      <div id="dr-${dt}" style="display:none;padding:10px 14px 14px;background:var(--s3);border-top:1px solid #fff1">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px">Full Breakdown</span>
+          <button onclick="jumpTo('${dt}')" style="background:var(--bar-l);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">✏ Edit Day</button>
+        </div>
+        ${salesDetail?`<div style="padding:6px 0;border-bottom:1px solid #fff1;margin-bottom:8px;flex-wrap:wrap;display:flex;gap:6px">${salesDetail}</div>`:''}
+        <div style="font-size:11px;color:var(--bar-a);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">💳 Tips: Card ${fm(ctips)} | ATH ${fm(atips)}</div>
+        <div style="font-size:11px;color:var(--bar-a);text-transform:uppercase;letter-spacing:1px;margin:8px 0 4px">👥 Staff</div>
+        ${staffDetail||'<div style="font-size:12px;color:var(--dim)">No staff data</div>'}
+        <div style="font-size:11px;color:var(--spa-a);text-transform:uppercase;letter-spacing:1px;margin:10px 0 4px">💅 Spa</div>
+        ${spaDetail||'<div style="font-size:12px;color:var(--dim)">No spa data</div>'}
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-top:12px">
+          <div class="sbox"><div class="sl">Bar</div><div class="sv" style="font-size:17px">${fm(barSales)}</div></div>
+          <div class="sbox"><div class="sl">Spa</div><div class="sv" style="font-size:17px;color:var(--spa-a)">${fm(spaSales)}</div></div>
+          <div class="sbox"><div class="sl">Staff Pay</div><div class="sv" style="font-size:17px;color:var(--bar-a)">${fm(staffPay)}</div></div>
+          <div class="sbox"><div class="sl">Expenses</div><div class="sv" style="font-size:17px;color:var(--red)">${fm(exps)}</div></div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  $('wk-days').innerHTML=dayRows.join('');
+  $('wk-bar-tot').value=fm(wkBar); $('wk-spa-tot').value=fm(wkSpa);
+  $('wk-staff-tot').value=fm(wkStaff); $('wk-exp-tot').value=fm(wkExp);
+  $('wk-day-tot').value=fm(wkBar+wkSpa);
+  $('wk-grand').textContent=fm(wkBar+wkSpa);
+
+  // ── Sales ──
+  let wkSalesTot=0;
+  $('wk-sales').innerHTML=SALES.map((nm,i)=>{
+    const bg=i%2?'var(--s2)':'var(--s1)'; const val=salesTotals[nm]||0;
+    if(nm!=='Spa Total') wkSalesTot+=val;
+    return `<div style="display:grid;grid-template-columns:1fr 110px;gap:8px;padding:9px 14px;background:${bg};border-bottom:1px solid #fff1;align-items:center">
+      <div style="font-size:13px">${nm}${nm==='Spa Total'?'<span style="font-size:10px;color:var(--spa-a);margin-left:6px">↗ Spa</span>':''}</div>
+      <div style="text-align:right;font-size:14px;font-weight:700;color:${val?'var(--gold)':'var(--dim)'}">${fm(val)}</div>
+    </div>`;
+  }).join('');
+  $('wk-sales-tot').value=fm(wkSalesTot);
+
+  // ── Tips ──
+  $('wk-ctips').value=fm(wkCtips); $('wk-atips').value=fm(wkAtips);
+  $('wk-alltips').value=fm(wkCtips+wkAtips);
+
+  // ── Register ──
+  $('wk-reg').innerHTML=regRows.map((r,i)=>{
+    const bg=i%2?'var(--s2)':'var(--s1)';
+    return `<div style="display:grid;grid-template-columns:1fr 110px 110px;gap:8px;padding:8px 14px;background:${bg};border-bottom:1px solid #fff1;align-items:center">
+      <div style="font-size:13px">${r.label}${r.person?` <span style="color:var(--dim);font-size:11px">(${r.person})</span>`:''}</div>
+      <div style="text-align:right;font-size:13px;color:var(--dim)">${r.open?fm(r.open):'—'}</div>
+      <div style="text-align:right;font-size:13px;color:${r.close?'var(--gold)':'var(--dim)'}">${r.close?fm(r.close):'—'}</div>
+    </div>`;
+  }).join('');
+  $('wk-reg-open').value=wkRegDays?fm(wkRegOpen/wkRegDays):'$0.00';
+  $('wk-reg-close').value=wkRegDays?fm(wkRegClose/wkRegDays):'$0.00';
+
+  // ── Staff ──
+  let totHrs=0,totBase=0,totTips=0,totInc=0,totPay=0;
+  $('wk-staff').innerHTML=STAFF.map((s,i)=>{
+    const r=staffTotals[s.n]||{hrs:0,base:0,tips:0,inc:0,tot:0};
+    totHrs+=r.hrs; totBase+=r.base; totTips+=r.tips; totInc+=r.inc; totPay+=r.tot;
+    const bg=i%2?'var(--s2)':'var(--s1)';
+    return `<div style="display:grid;grid-template-columns:1fr 70px 85px 85px 75px 95px;gap:6px;padding:9px 14px;background:${bg};border-bottom:1px solid #fff1;align-items:center">
+      <div style="font-size:13px;font-weight:500">${s.n}</div>
+      <div style="text-align:center;font-size:12px;color:var(--dim)">${r.hrs.toFixed(1)}h</div>
+      <div style="text-align:right;font-size:13px">${fm(r.base)}</div>
+      <div style="text-align:right;font-size:13px;color:var(--bar-a)">${fm(r.tips)}</div>
+      <div style="text-align:right;font-size:13px;color:var(--green)">${fm(r.inc)}</div>
+      <div style="text-align:right;font-size:13px;font-weight:700;color:var(--gold)">${fm(r.tot)}</div>
+    </div>`;
+  }).join('');
+  $('wk-s-hrs').value=totHrs.toFixed(1)+'h'; $('wk-s-base').value=fm(totBase);
+  $('wk-s-tips').value=fm(totTips); $('wk-s-inc').value=fm(totInc); $('wk-s-tot').value=fm(totPay);
+
+  // ── Spa techs ──
+  let tgross=0,tcomm=0,ttips=0,tmat=0,tpay=0;
+  $('wk-techs').innerHTML=TECHS.map((tech,i)=>{
+    const r=techTotals[tech.n]||{gross:0,comm:0,tips:0,mat:0,pay:0,days:0};
+    tgross+=r.gross; tcomm+=r.comm; ttips+=r.tips; tmat+=r.mat; tpay+=r.pay;
+    const bg=i%2?'var(--s2)':'var(--s1)';
+    return `<div style="display:grid;grid-template-columns:1fr 45px 90px 90px 90px 70px 100px;gap:5px;padding:9px 14px;background:${bg};border-bottom:1px solid #fff1;align-items:center">
+      <div style="font-size:13px;font-weight:500">${tech.n}<span style="font-size:10px;color:var(--dim);margin-left:4px">${r.days}d</span></div>
+      <div style="text-align:center"><span class="pct">${Math.round(tech.p*100)}%</span></div>
+      <div style="text-align:right;font-size:12px">${fm(r.gross)}</div>
+      <div style="text-align:right;font-size:12px;color:var(--spa-a)">${fm(r.comm)}</div>
+      <div style="text-align:right;font-size:12px;color:var(--bar-a)">${fm(r.tips)}</div>
+      <div style="text-align:right;font-size:12px;color:var(--red)">${fm(r.mat)}</div>
+      <div style="text-align:right;font-size:12px;font-weight:700;color:var(--gold)">${fm(r.pay)}</div>
+    </div>`;
+  }).join('');
+  $('wk-t-gross').value=fm(tgross); $('wk-t-comm').value=fm(tcomm);
+  $('wk-t-tips').value=fm(ttips);   $('wk-t-mat').value=fm(tmat); $('wk-t-pay').value=fm(tpay);
+
+  // ── Expenses detail ──
+  $('wk-exps').innerHTML=expLines.length
+    ? expLines.map((e,i)=>{
+        const bg=i%2?'var(--s2)':'var(--s1)';
+        return `<div style="display:grid;grid-template-columns:70px 1fr 110px;gap:8px;padding:8px 14px;background:${bg};border-bottom:1px solid #fff1;align-items:center">
+          <div style="font-size:12px;color:var(--dim)">${e.day}</div>
+          <div style="font-size:13px">${e.desc}</div>
+          <div style="text-align:right;font-size:13px;color:var(--red);font-weight:600">${fm(e.amt)}</div>
+        </div>`;
+      }).join('')
+    : '<div style="padding:14px;text-align:center;color:var(--dim);font-size:13px">No expenses this week.</div>';
+  $('wk-exps-tot').value=fm(wkExp);
+
+  // ── Grand summary ──
+  const netRev=wkBar+wkSpa;
+  const totalPayroll=totPay+tpay;
+  const netAfter=netRev-totalPayroll-wkExp;
+  $('wk-summary').innerHTML=`
+    <div class="sbox"><div class="sl">Bar Revenue</div><div class="sv">${fm(wkBar)}</div></div>
+    <div class="sbox"><div class="sl">Spa Revenue</div><div class="sv" style="color:var(--spa-a)">${fm(wkSpa)}</div></div>
+    <div class="sbox hl"><div class="sl">Total Revenue</div><div class="sv">${fm(netRev)}</div></div>
+    <div class="sbox"><div class="sl">Card Tips</div><div class="sv" style="color:var(--bar-a)">${fm(wkCtips)}</div></div>
+    <div class="sbox"><div class="sl">ATH Tips</div><div class="sv" style="color:var(--bar-a)">${fm(wkAtips)}</div></div>
+    <div class="sbox"><div class="sl">All Tips</div><div class="sv" style="color:var(--bar-a)">${fm(wkCtips+wkAtips)}</div></div>
+    <div class="sbox"><div class="sl">Bar Staff Pay</div><div class="sv" style="color:var(--bar-a)">${fm(totPay)}</div></div>
+    <div class="sbox"><div class="sl">Spa Staff Pay</div><div class="sv" style="color:var(--spa-a)">${fm(tpay)}</div></div>
+    <div class="sbox"><div class="sl">Total Payroll</div><div class="sv" style="color:var(--gold)">${fm(totalPayroll)}</div></div>
+    <div class="sbox"><div class="sl">Expenses</div><div class="sv" style="color:var(--red)">${fm(wkExp)}</div></div>
+    <div class="sbox hl" style="grid-column:span 2">
+      <div class="sl">Net After All Payroll &amp; Expenses</div>
+      <div class="sv" style="font-size:30px;color:${netAfter>=0?'var(--gold)':'var(--red)'}">${fm(netAfter)}</div>
+    </div>`;
+}
+
+
+function toggleDayRow(bodyId, arrId){
+  const body = $(bodyId), arr = $(arrId);
+  if(!body) return;
+  const open = body.style.display==='block';
+  body.style.display = open?'none':'block';
+  if(arr) arr.style.transform = open?'':'rotate(90deg)';
+}
+
+function exportWeekCSV(){
+  const mon=$('wk-start').value; if(!mon){toast('Select a week first','err');return;}
+  const dates=Array.from({length:7},(_,i)=>addDays(mon,i));
+  const DAY_NAMES=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  let csv='Day,Date,Bar Sales,Spa Sales,Staff Pay,Expenses,Total\n';
+  dates.forEach((dt,i)=>{
+    const d=getDayData(dt);
+    if(!d){csv+=`${DAY_NAMES[i]},${dt},0,0,0,0,0\n`;return;}
+    const bar=(d.bar?.sales||[]).reduce((a,s)=>a+(s.amt||0),0);
+    let spa=0; (d.spa?.techs||[]).forEach(t=>{(t.clients||[]).forEach(cl=>spa+=cl.svc||0);});
+    let staff=0;
+    (d.bar?.staff||[]).forEach((s,si)=>{
+      const hrs=calcDayStaffHrs(s); const rate=s.pay||STAFF[si]?.pay||0;
+      const tips=(s.tips||[]).reduce((a,t)=>a+(t.amt||0),0);
+      staff+=hrs*rate+tips+(s.inc||0);
+    });
+    const exp=(d.bar?.exps||[]).reduce((a,e)=>a+(e.amt||0),0);
+    csv+=`${DAY_NAMES[i]},${dt},${bar.toFixed(2)},${spa.toFixed(2)},${staff.toFixed(2)},${exp.toFixed(2)},${(bar+spa).toFixed(2)}\n`;
+  });
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=`anam_week_${mon}.csv`; a.click();
+}
+
+// ── PIN LOCK ──────────────────────────────────────────────────
+const WEEKLY_PIN = '1234'; // Change this to your preferred PIN
+let weekUnlocked = false;
+
+function pinKey(k){
+  const el=$('pin-input');
+  if(el.value.length<6) el.value+=k;
+}
+function pinBackspace(){
+  const el=$('pin-input');
+  el.value=el.value.slice(0,-1);
+}
+function showPinModal(){
+  const m=$('pin-modal');
+  m.style.display='flex';
+  $('pin-input').value='';
+  $('pin-error').textContent='';
+  setTimeout(()=>$('pin-input').focus(),100);
+}
+function closePinModal(){
+  $('pin-modal').style.display='none';
+}
+function checkPin(){
+  const entered = $('pin-input').value;
+  if(entered === WEEKLY_PIN){
+    weekUnlocked = true;
+    closePinModal();
+    _openWeek();
+  } else {
+    $('pin-error').textContent = 'Incorrect PIN. Try again.';
+    $('pin-input').value='';
+    $('pin-input').focus();
+  }
+}
+
+// ── TABS ─────────────────────────────────────────────────────
+function switchTab(tab){
+  if(tab==='week'){
+    if(!weekUnlocked){ showPinModal(); return; }
+    _openWeek(); return;
+  }
+  document.querySelectorAll('.nbtn').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  $(`nb-${tab}`).classList.add('on');
+  $(`panel-${tab}`).classList.add('on');
+  if(tab==='hist') renderHist();
+}
+function _openWeek(){
+  document.querySelectorAll('.nbtn').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  $('nb-week').classList.add('on');
+  $('panel-week').classList.add('on');
+  if(!$('wk-start').value) thisWeek();
+  else renderWeek();
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function toast(msg,type=''){
+  const t=$('toast'); t.textContent=msg;
+  t.className=type==='err'?'err show':'show';
+  setTimeout(()=>t.className=type==='err'?'err':'',2600);
+}
+
+// ── PWA: SERVICE WORKER ───────────────────────────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        nw.addEventListener('statechange', () => {
+          if(nw.state==='installed' && navigator.serviceWorker.controller)
+            toast('App updated! Reload to apply.');
+        });
+      });
+    }).catch(()=>{});
+  });
+}
+
+// ── PWA: INSTALL PROMPT ───────────────────────────────────────
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const banner = document.getElementById('install-banner');
+  if(banner) banner.style.display = 'flex';
+});
+window.addEventListener('appinstalled', () => {
+  const banner = document.getElementById('install-banner');
+  if(banner) banner.style.display = 'none';
+  toast('Anam POS installed! ✓');
+});
+function installApp(){
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+}
+</script>
+
+<!-- PIN MODAL -->
+<div id="pin-modal" style="display:none;position:fixed;inset:0;background:#000000dd;z-index:600;align-items:center;justify-content:center;padding:24px">
+  <div style="background:var(--s1);border-radius:var(--r);padding:28px 24px;width:100%;max-width:320px;border:1px solid #ffffff15;text-align:center">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:3px;background:linear-gradient(135deg,var(--bar-a),var(--spa-a));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px">WEEKLY TOTALS</div>
+    <div style="font-size:13px;color:var(--dim);margin-bottom:24px;letter-spacing:1px">OWNER ACCESS ONLY</div>
+    <div style="font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Enter PIN</div>
+    <input type="password" id="pin-input" inputmode="numeric" maxlength="6" placeholder="••••"
+      style="width:100%;padding:16px;text-align:center;font-size:28px;letter-spacing:8px;background:var(--s2);border:2px solid #ffffff20;border-radius:var(--rs);color:var(--tx);font-family:'DM Sans',sans-serif;outline:none;margin-bottom:10px"
+      onfocus="this.style.borderColor='var(--bar-a)'" onblur="this.style.borderColor='#ffffff20'"
+      onkeydown="if(event.key==='Enter')checkPin()">
+    <div id="pin-error" style="color:var(--red);font-size:13px;min-height:18px;margin-bottom:14px"></div>
+    <!-- PIN pad -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+      <button onclick="pinKey('1')" class="pinbtn">1</button>
+      <button onclick="pinKey('2')" class="pinbtn">2</button>
+      <button onclick="pinKey('3')" class="pinbtn">3</button>
+      <button onclick="pinKey('4')" class="pinbtn">4</button>
+      <button onclick="pinKey('5')" class="pinbtn">5</button>
+      <button onclick="pinKey('6')" class="pinbtn">6</button>
+      <button onclick="pinKey('7')" class="pinbtn">7</button>
+      <button onclick="pinKey('8')" class="pinbtn">8</button>
+      <button onclick="pinKey('9')" class="pinbtn">9</button>
+      <button style="background:transparent;border:none;cursor:default"></button>
+      <button onclick="pinKey('0')" class="pinbtn">0</button>
+      <button onclick="pinBackspace()" class="pinbtn" style="font-size:18px">⌫</button>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="checkPin()" style="flex:1;padding:14px;border:none;border-radius:var(--rs);background:linear-gradient(135deg,var(--bar-l),var(--spa-l));color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Unlock</button>
+      <button onclick="closePinModal()" style="padding:14px 18px;border:1.5px solid #ffffff20;border-radius:var(--rs);background:transparent;color:var(--dim);font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif">Cancel</button>
+    </div>
+  </div>
+</div>
+<div id="install-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:998;background:linear-gradient(135deg,#1a3a5c,#3b1a5c);padding:14px 18px;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #fff2">
+  <div>
+    <div style="font-weight:700;font-size:14px;color:#fff">Install Anam POS</div>
+    <div style="font-size:12px;color:#8a8f9e;margin-top:2px">Add to home screen for quick access</div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button onclick="installApp()" style="padding:10px 20px;border:none;border-radius:8px;background:linear-gradient(135deg,#2e6da4,#7b3fa0);color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif">Install</button>
+    <button onclick="document.getElementById('install-banner').style.display='none'" style="padding:10px 16px;border:1.5px solid #fff3;border-radius:8px;background:transparent;color:#8a8f9e;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">Later</button>
+  </div>
+</div>
+
+</body>
+</html>
