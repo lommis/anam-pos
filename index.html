@@ -136,8 +136,9 @@ input,textarea{font-family:'DM Sans',sans-serif;}
 <div id="app">
   <div id="topbar">
     <div class="logo">ANAM</div>
-    <div style="display:flex;gap:10px;align-items:center">
-      <button class="btn bout" onclick="exportCSV()">⬇ CSV</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn bout" onclick="openSheetsSetup()" style="padding:7px 12px;font-size:11px">📊 Sheets</button>
+      <button class="btn bout" onclick="exportCSV()" style="padding:7px 12px;font-size:11px">⬇ CSV</button>
       <div class="clock"><strong id="ck-date"></strong><span id="ck-time"></span></div>
     </div>
   </div>
@@ -498,6 +499,29 @@ input,textarea{font-family:'DM Sans',sans-serif;}
 </div><!-- app -->
 
 <div id="toast"></div>
+
+<!-- SHEETS MODAL -->
+<div id="sheets-modal" style="display:none;position:fixed;inset:0;background:#000000cc;z-index:600;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--s1);border-radius:var(--r);padding:24px;width:100%;max-width:460px;border:1px solid #ffffff15">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--bar-a);margin-bottom:6px">📊 Google Sheets Sync</div>
+    <p style="font-size:13px;color:var(--dim);margin-bottom:16px;line-height:1.6">Every time you save a day, data sends automatically to your Google Sheet.</p>
+    <div style="font-size:12px;color:var(--tx);font-weight:700;margin-bottom:8px">Setup Steps:</div>
+    <div style="font-size:12px;color:var(--dim);line-height:2;margin-bottom:16px">
+      1. Open Google Sheets → create new sheet<br>
+      2. Tap Extensions → Apps Script<br>
+      3. Paste the script (copy below)<br>
+      4. Click Deploy → New deployment → Web App<br>
+      5. Set "Who has access" to <b style="color:var(--tx)">Anyone</b><br>
+      6. Copy the Web App URL and paste below
+    </div>
+    <div style="font-size:11px;color:var(--bar-a);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Web App URL</div>
+    <input id="sheets-url-input" type="url" placeholder="https://script.google.com/macros/s/.../exec" style="width:100%;padding:11px;background:var(--s2);border:1.5px solid #ffffff20;border-radius:var(--rs);color:var(--tx);font-size:13px;margin-bottom:12px;font-family:'DM Sans',sans-serif">
+    <div style="display:flex;gap:8px">
+      <button onclick="saveSheetsUrl()" style="flex:1;padding:13px;border:none;border-radius:var(--rs);background:linear-gradient(135deg,var(--bar-l),var(--spa-l));color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif">Save URL</button>
+      <button onclick="closeSheetsModal()" style="padding:13px 18px;border:1.5px solid #ffffff20;border-radius:var(--rs);background:transparent;color:var(--dim);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ── CONFIG ──────────────────────────────────────────────────
@@ -1162,6 +1186,7 @@ function saveDay(){
   localStorage.setItem(dayKey(),JSON.stringify(d));
   toast('Day saved! ✓');
   renderHist();
+  syncToSheets(d);
 }
 
 function loadDay(){
@@ -1643,7 +1668,29 @@ function toast(msg,type=''){
   setTimeout(()=>t.className=type==='err'?'err':'',2600);
 }
 
-// ── PWA: SERVICE WORKER ───────────────────────────────────────
+// ── GOOGLE SHEETS SYNC ───────────────────────────────────────
+function openSheetsSetup(){
+  const url = localStorage.getItem('anam_sheets_url')||'';
+  $('sheets-url-input').value = url;
+  $('sheets-modal').style.display='flex';
+}
+function closeSheetsModal(){ $('sheets-modal').style.display='none'; }
+function saveSheetsUrl(){
+  const url=$('sheets-url-input').value.trim();
+  localStorage.setItem('anam_sheets_url', url);
+  closeSheetsModal();
+  toast('Sheets URL saved! ✓');
+}
+function syncToSheets(data){
+  const url=localStorage.getItem('anam_sheets_url');
+  if(!url) return;
+  fetch(url,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(data),
+    mode:'no-cors'
+  }).then(()=>toast('Synced to Google Sheets ✓')).catch(()=>toast('Sync failed','err'));
+}
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').then(reg => {
